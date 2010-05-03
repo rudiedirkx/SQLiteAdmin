@@ -1,4 +1,4 @@
-<?php #1.3
+<?php #1.4
 
 require_once(dirname(__FILE__).'/inc.cls.db_sqlite.php');
 
@@ -9,6 +9,7 @@ class db_sqlite3 extends db_sqlite {
 	public $errno = 0;
 	public $num_queries = 0;
 	public $m_iAffectedRows = 0;
+	public $last_query = '';
 
 	public function begin() {
 		return $this->dbCon->beginTransaction();
@@ -42,7 +43,7 @@ class db_sqlite3 extends db_sqlite {
 	}
 
 	public function escape($v) {
-		return addslashes((string)$v);
+		return str_replace("'", "''", (string)$v);
 	}
 
 	public function insert_id() {
@@ -55,6 +56,7 @@ class db_sqlite3 extends db_sqlite {
 
 	public function query( $f_szSqlQuery ) {
 		$this->num_queries++;
+		$this->last_query = $f_szSqlQuery;
 		if ( false === ($r = $this->dbCon->query($f_szSqlQuery)) ) {
 			$this->saveError(true);
 			return false;

@@ -20,6 +20,6 @@ if ( !$db->connected() ) {
 
 //var_dump($db);
 
-echo '<fieldset><legend>Selected <a href="database.php?db='.$_GET['db'].'">database</a></legend>'.$objDb->path.' (<a href="aliases.php">aliases</a>)</fieldset><br />'."\n\n";
+echo '<fieldset><legend>Selected <a href="database.php?db='.$_GET['db'].'">database</a></legend>'.$_GET['db'].': '.$objDb->path.' (<a href="aliases.php">aliases</a>)</fieldset><br />'."\n\n";
 
 

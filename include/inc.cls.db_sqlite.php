@@ -1,4 +1,4 @@
-<?php #1.5
+<?php #1.6
 
 require_once(dirname(__FILE__).'/inc.cls.db_generic.php');
 
@@ -18,6 +18,7 @@ class db_sqlite extends db_generic {
 	public $error = '';
 	public $errno = 0;
 	public $num_queries = 0;
+	public $last_query = '';
 
 	public function toQueryFieldList($list) {
 		$r = array();
@@ -149,9 +150,10 @@ class db_sqlite extends db_generic {
 	}
 
 	public function query( $f_szSqlQuery ) {
+		$this->num_queries++;
+		$this->last_query = $f_szSqlQuery;
 		$r = $this->dbCon->query($f_szSqlQuery) or $this->saveError();
 		$this->saveError();
-		$this->num_queries++;
 		return $r;
 	}
 

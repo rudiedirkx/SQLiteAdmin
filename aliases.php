@@ -2,14 +2,27 @@
 
 require_once('inc.config.php');
 
-if ( isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
+if ( isset($_GET['username'], $_GET['password']) ) {
+	if ( false !== ($u=$master->select_one('users', 'id', "username = '".$master->escape($_GET['username'])."' AND password = '".$master->escape($_GET['password'])."'")) ) {
+		$_SESSION[S_NAME] = array(
+			'user_id' => (int)$u,
+			'logouttime' => time()+300
+		);
+	}
+	header('Location: ./');
+	exit;
+}
+
+if ( logincheck() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
 	if ( isset($_GET['edit']) ) {
 		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
 	}
 	else {
 		$master->insert('aliases', $_POST);
 	}
-	header('Location: aliases.php');
+echo $master->last_query."\n";
+echo $master->error;
+//	header('Location: aliases.php');
 	exit;
 }
 
@@ -29,13 +42,11 @@ else if ( isset($_GET['download']) ) {
 	exit;
 }
 
-echo '<title>Aliases</title>';
-
-$arrAliases = $master->select('aliases', '1 ORDER BY alias');
+echo '<title>Aliases'.( logincheck() ? ' ('.$g_objUser->username.')' : '' ).'</title>';
 
 echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
 echo '<tr><th></th><th>Alias</th><th>Path</th><th>Description</th><th>Version</th><th>Readable</th><th>Size</th><th>Writable</th><th>Delete</th><th>Download</th></tr>'."\n";
-foreach ( $arrAliases AS $a ) {
+foreach ( $g_arrAliases AS $a ) {
 	$version = !file_exists($a['path']) || 0 == filesize($a['path']) ? '-' : ( 'SQLite format 3' == substr(file_get_contents($a['path']), 0, 15) ? '3' : '2' );
 	echo '<tr>';
 	echo '<td><a href="database.php?db='.urlencode($a['alias']).'">open</a></td>';
@@ -52,26 +63,30 @@ foreach ( $arrAliases AS $a ) {
 }
 echo '</table>'."\n";
 
-echo '<br />'."\n";
+if ( logincheck() ) {
 
-$arrAlias = null;
-if ( !empty($_GET['edit']) ) {
-	$arrAlias = $master->select('aliases', 'alias = \''.$master->escape($_GET['edit']).'\' LIMIT 2');
-	if ( 1 == count($arrAlias) ) {
-		$arrAlias = $arrAlias[0];
+	echo '<br />'."\n";
+
+	$arrAlias = null;
+	if ( !empty($_GET['edit']) ) {
+		$arrAlias = $master->select('aliases', 'alias = \''.$master->escape($_GET['edit']).'\' LIMIT 2');
+		if ( 1 == count($arrAlias) ) {
+			$arrAlias = $arrAlias[0];
+		}
+		else {
+			unset($_GET['edit'], $arrAlias);
+			$arrAlias = null;
+		}
 	}
-	else {
-		unset($_GET['edit'], $arrAlias);
-		$arrAlias = null;
-	}
+
+	echo '<form method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'"><table border="1" cellpadding="4" cellspacing="2">'."\n";
+	echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
+	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? $arrAlias['alias'] : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? $arrAlias['path'] : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? $arrAlias['description'] : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
+	echo '</table></form>'."\n";
+
 }
-
-echo '<form method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'"><table border="1" cellpadding="4" cellspacing="2">'."\n";
-echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
-echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? $arrAlias['alias'] : '' ).'" size="60" /></td></tr>'."\n";
-echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? $arrAlias['path'] : '' ).'" size="60" /></td></tr>'."\n";
-echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? $arrAlias['description'] : '' ).'" size="60" /></td></tr>'."\n";
-echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
-echo '</table></form>'."\n";
 
 

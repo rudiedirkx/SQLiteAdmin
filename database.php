@@ -20,7 +20,7 @@ echo '</fieldset>'."\n";
 
 echo '<br />';
 
-echo '<form method="post" action="'.QS.'&query=1"><fieldset><legend>Query</legend>'."\n";
+echo '<form method="post" action="?db='.$_GET['db'].'&query=1"><fieldset><legend>Query</legend>'."\n";
 if ( isset($_POST['sql']) ) {
 	$arrQueries = array_filter(explode(";\n\n", str_replace("\r", '', $_POST['sql'])), create_function('$q', 'return "" != trim($q);'));
 	if ( 1 < count($arrQueries) ) {
