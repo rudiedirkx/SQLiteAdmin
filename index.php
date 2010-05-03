@@ -1,5 +1,5 @@
 <?php
 
-include 'aliases.php';
+header('Location: aliases.php');
 
 

@@ -2,68 +2,69 @@
 
 require_once('inc.config.php');
 
-if ( isset($_GET['username'], $_GET['password']) ) {
-	if ( false !== ($u=$master->select_one('users', 'id', "username = '".$master->escape($_GET['username'])."' AND password = '".$master->escape($_GET['password'])."'")) ) {
-		$_SESSION[S_NAME] = array(
-			'user_id' => (int)$u,
-			'logouttime' => time()+300
-		);
-	}
-	header('Location: ./');
-	exit;
-}
-
-if ( logincheck() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
+if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
 	if ( isset($_GET['edit']) ) {
 		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
 	}
 	else {
 		$master->insert('aliases', $_POST);
 	}
-echo $master->last_query."\n";
-echo $master->error;
-//	header('Location: aliases.php');
+	header('Location: aliases.php');
 	exit;
 }
 
-else if ( isset($_GET['delete']) ) {
+else if ( logincheck() && $g_objUser->isAdmin() && isset($_GET['delete']) ) {
 	$master->delete('aliases', 'alias = \''.$master->escape($_GET['delete']).'\'');
 	header('Location: aliases.php');
 	exit;
 }
 
-else if ( isset($_GET['download']) ) {
-	$path = $master->select_one('aliases', 'path', 'alias = \''.$master->escape($_GET['download']).'\'');
-	if ( file_exists($path) && is_readable($path) ) {
+else if ( logincheck() && isset($_GET['download']) ) {
+	$alias = $g_objUser->getAliasByAlias( $_GET['download'] );
+	if ( $alias && file_exists($alias->path) && is_readable($alias->path) ) {
 		header('Content-type: text/plain');
-		header('Content-disposition: attachment; filename="'.basename($path).'"');
-		readfile($path);
+		header('Content-disposition: attachment; filename="'.basename($alias->path).'"');
+		readfile($alias->path);
 	}
 	exit;
 }
 
-echo '<title>Aliases'.( logincheck() ? ' ('.$g_objUser->username.')' : '' ).'</title>';
+?>
+<html>
 
-echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
-echo '<tr><th></th><th>Alias</th><th>Path</th><th>Description</th><th>Version</th><th>Readable</th><th>Size</th><th>Writable</th><th>Delete</th><th>Download</th></tr>'."\n";
+<head>
+<title>Aliases<?php echo logincheck() ? ' ('.$g_objUser->username.')' : ''; ?></title>
+</head>
+
+<body>
+
+<?php if ( logincheck() ): ?>
+<div style="padding-bottom:10px;">Logged in as: <b><?php echo $g_objUser->username; ?></b> | <a href="login.php?logout=1">logout</a></div>
+<?php endif; ?>
+
+<table border="1" cellpadding="4" cellspacing="2">
+<tr><th></th><th>Alias</th><th>Public?</th><th>Path</th><th>Description</th><th>Version</th><th>Readable?</th><th>Size</th><th>Writable?</th><th></th><th></th></tr>
+<?php
+
 foreach ( $g_arrAliases AS $a ) {
 	$version = !file_exists($a['path']) || 0 == filesize($a['path']) ? '-' : ( 'SQLite format 3' == substr(file_get_contents($a['path']), 0, 15) ? '3' : '2' );
 	echo '<tr>';
 	echo '<td><a href="database.php?db='.urlencode($a['alias']).'">open</a></td>';
 	echo '<td><a href="?edit='.urlencode($a['alias']).'">'.$a['alias'].'</a></td>';
+	echo '<td align="center">'.( $a['public'] ? 'Y' : 'N' ).'</td>';
 	echo '<td>'.$a['path'].'</td>';
 	echo '<td>'.$a['description'].'</td>';
 	echo '<td align="center">'.$version.'</td>';
-	echo '<th>'.(is_readable($a['path'])?'Y':'N').'</th>';
-	echo '<th>'.( is_readable($a['path']) ? number_format(ceil(filesize($a['path'])/1024), 0, '.', ' ').' KB' : '-' ).'</th>';
-	echo '<th>'.(is_writable($a['path'])?'Y':'N').'</th>';
+	echo '<td align="center">'.(is_readable($a['path'])?'Y':'N').'</td>';
+	echo '<td align="right">'.( is_readable($a['path']) ? number_format(ceil(filesize($a['path'])/1024), 0, '.', ' ').' KB' : '-' ).'</td>';
+	echo '<td align="center">'.(is_writable($a['path'])?'Y':'N').'</td>';
 	echo '<td align="center"><a href="?delete='.urlencode($a['alias']).'">del</a></td>';
 	echo '<td align="center"><a href="?download='.urlencode($a['alias']).'">download</a></td>';
 	echo '</tr>'."\n";
 }
 echo '</table>'."\n";
 
-if ( logincheck() ) {
+if ( logincheck() && $g_objUser->isAdmin() ) {
 
 	echo '<br />'."\n";
 
@@ -88,5 +89,10 @@ if ( logincheck() ) {
 	echo '</table></form>'."\n";
 
 }
+
+?>
+</body>
+
+</html>
 
 
