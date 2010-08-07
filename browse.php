@@ -7,7 +7,7 @@ $iLimit = 200;
 $iStart = $iPage * $iLimit;
 $bCrop = empty($_GET['nocrop']);
 
-$szSql = 'SELECT * FROM '.$szTable.' WHERE 1 LIMIT '.$iStart.', '.$iLimit;
+$szSql = 'SELECT * FROM "'.$szTable.'" WHERE 1 LIMIT '.$iStart.', '.$iLimit;
 if ( !empty($_GET['sql']) ) {
 	$szSql = $_GET['sql'];
 }
@@ -17,7 +17,7 @@ if ( !empty($_GET['sql']) ) {
 echo '<form action="?">';
 echo '<input type="hidden" name="db" value="'.$_GET['db'].'" />';
 echo '<input type="hidden" name="tbl" value="'.$_GET['tbl'].'" />';
-echo '<input type="text" name="sql" value="'.$szSql.'" style="width:100%;" />';
+echo '<input type="text" name="sql" value="'.htmlspecialchars($szSql).'" style="width:100%;" />';
 echo '</form>';
 
 $arrContents = $db->fetch($szSql);
@@ -41,7 +41,12 @@ if ( $arrContents ) {
 	echo '</tbody></table>'."\n";
 }
 else {
-	echo '<p>no records returned</p>';
+	if ( false === $arrContents ) {
+		echo '<p>'.$db->error.'</p>';
+	}
+	else {
+		echo '<p>no records returned</p>';
+	}
 }
 
 

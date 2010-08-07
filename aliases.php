@@ -2,12 +2,22 @@
 
 require_once('inc.config.php');
 
+//print_r($_POST);
+
 if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
 	if ( isset($_GET['edit']) ) {
 		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
 	}
 	else {
+#		if ( !empty($_FILES['file']['name']) && empty($_FILES['file']['error']) && 0 < $_FILES['file']['size'] ) {
+#			$to = 'dbs/'.basename($_FILES['file']['name']);
+#			move_uploaded_file($_FILES['file']['tmp_name'], $to);
+#			chmod($to, 0777);
+#			$_POST['path'] = $to;
+#		}
 		$master->insert('aliases', $_POST);
+#echo $master->last_query."\n";
+#echo $master->error;
 	}
 	header('Location: aliases.php');
 	exit;
@@ -47,7 +57,8 @@ else if ( logincheck() && isset($_GET['download']) ) {
 <?php
 
 foreach ( $g_arrAliases AS $a ) {
-	$version = !file_exists($a['path']) || 0 == filesize($a['path']) ? '-' : ( 'SQLite format 3' == substr(file_get_contents($a['path']), 0, 15) ? '3' : '2' );
+//	$version = !file_exists($a['path']) || 0 == filesize($a['path']) || 2000000 > filesize($a['path']) ? '-' : ( 'SQLite format 3' == substr(file_get_contents($a['path']), 0, 15) ? '3' : '2' );
+	$version = '?';
 	echo '<tr>';
 	echo '<td><a href="database.php?db='.urlencode($a['alias']).'">open</a></td>';
 	echo '<td><a href="?edit='.urlencode($a['alias']).'">'.$a['alias'].'</a></td>';
@@ -84,6 +95,8 @@ if ( logincheck() && $g_objUser->isAdmin() ) {
 	echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
 	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? $arrAlias['alias'] : '' ).'" size="60" /></td></tr>'."\n";
 	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? $arrAlias['path'] : '' ).'" size="60" /></td></tr>'."\n";
+#	echo '<tr><th>OR</th><td></td></tr>'."\n";
+#	echo '<tr><th>File</th><td><input type="file" name="file" /></td></tr>'."\n";
 	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? $arrAlias['description'] : '' ).'" size="60" /></td></tr>'."\n";
 	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
 	echo '</table></form>'."\n";

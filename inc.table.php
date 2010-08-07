@@ -2,7 +2,7 @@
 
 require_once('inc.database.php');
 
-if ( empty($_GET['tbl']) || ( 'sqlite_master' != $_GET['tbl'] && 0 == count($arrTbl=$db->select('sqlite_master', "type = 'table' AND tbl_name = '".$db->escape($_GET['tbl'])."'")) ) ) {
+if ( empty($_GET['tbl']) || ( 'sqlite_master' != $_GET['tbl'] && 0 == count($arrTbl=$db->select('sqlite_master', "type IN ('table', 'view') AND tbl_name = '".$db->escape($_GET['tbl'])."'")) ) ) {
 	echo '<p style="color:red;">Select a table</p>';
 	require_once('database.php');
 	exit;

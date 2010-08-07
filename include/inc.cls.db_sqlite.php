@@ -74,7 +74,7 @@ class db_sqlite extends db_generic {
 	public function indices( $tbl, $pk = false ) {
 		if ( $pk ) {
 			$pk = array();
-			$cols = $this->fetch('PRAGMA table_info('.$tbl.')');
+			$cols = $this->fetch('PRAGMA table_info(`'.$tbl.'`)');
 			foreach ( $cols AS $c ) {
 				if ( $c['pk'] ) {
 					$pk[] = $c['name'];
@@ -82,7 +82,7 @@ class db_sqlite extends db_generic {
 			}
 			return $pk;
 		}
-		$arrIndices = $this->fetch('PRAGMA index_list('.$tbl.')');
+		$arrIndices = $this->fetch('PRAGMA index_list(`'.$tbl.'`)');
 		if ( !function_exists('fn_db_sqlite_colname') ) {
 			function fn_db_sqlite_colname($c) {
 				return $c['name'];
@@ -101,10 +101,10 @@ class db_sqlite extends db_generic {
 	}
 
 	public function structure($tbl) {
-		$info = $this->fetch('PRAGMA table_info('.$tbl.')');
+		$info = $this->fetch('PRAGMA table_info(`'.$tbl.'`)');
 		$structure = array();
 		foreach ( $info AS $col ) {
-			$structure[strtolower($col['name'])] = strtoupper($col['type']);
+			$structure[$col['name']] = strtoupper($col['type']);
 		}
 		return (object)$structure;
 	}

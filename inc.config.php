@@ -56,7 +56,7 @@ function logincheck() {
 
 
 if ( 'login.php' != basename($_SERVER['PHP_SELF']) && !logincheck() ) {
-	echo 'You gotsta <a href="login.php">login</a>....';
+	echo '<html><head><meta http-equiv="refresh" content="1;url=login.php"></head><body><p>You gotsta <a href="login.php">login</a>....</p></body></html>';
 	exit;
 }
 

@@ -5,10 +5,10 @@ require_once('inc.database.php');
 echo '<fieldset><legend>Tables</legend>'."\n";
 echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
 echo '<tr><th>sqlite_master</th><td><a href="browse.php'.QS.'&tbl=sqlite_master">'.$db->count('sqlite_master').' rows</a></td><td colspan="4"></td></tr>'."\n";
-foreach ( $db->select('sqlite_master', 'type = \'table\'') AS $t ) {
+foreach ( $db->select('sqlite_master', "type IN ('table', 'view')") AS $t ) {
 	echo '<tr>';
 	echo '<th>'.$t['tbl_name'].'</th>';
-	echo '<td><a href="browse.php'.QS.'&tbl='.$t['tbl_name'].'">'.$db->count($t['tbl_name']).' rows</a></td>';
+	echo '<td><a href="browse.php'.QS.'&tbl='.str_replace(' ', '+', $t['tbl_name']).'">'.$db->count('"'.$t['tbl_name'].'"').' rows</a></td>';
 	echo '<td><a href="structure.php'.QS.'&tbl='.$t['tbl_name'].'">structure</a></td>';
 	echo '<td><a href="insert.php'.QS.'&tbl='.$t['tbl_name'].'">insert</a></td>';
 	echo '<td><a href="#truncate_table.php'.QS.'&tbl='.$t['tbl_name'].'">truncate</a></td>';
