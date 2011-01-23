@@ -40,6 +40,49 @@ class User {
 		$a = $this->master->select('aliases', 'id = '.(int)$id . ( !$this->isAdmin() ? ' AND (public = 1 OR id IN ( SELECT alias_id FROM user_alias_access WHERE user_id = '.USER_ID.' ))' : '' ));
 		return $a ? (object)$a[0] : false;
 	}
+	public function getAliases() {
+		if ( $this->isAdmin() ) {
+			// admin
+			return $this->master->select_by_field('aliases', 'alias', '1 ORDER BY alias');
+		}
+		// normal user
+		return $this->master->select_by_field('aliases', 'alias', 'public = 1 OR id IN ( SELECT alias_id FROM user_alias_access WHERE user_id = '.USER_ID.' ) ORDER BY alias');
+	}
+	public function loadAlias($name) {
+		if ( isset($GLOBALS['g_arrAliases'][$name]) ) {
+			return $this->alias = new UsedAlias($GLOBALS['g_arrAliases'][$name], $this);
+		}
+		return false;
+	}
+}
+
+class UsedAlias {
+	public function __construct($data, $user) {
+		$this->fill($data);
+		$this->master = $GLOBALS['master'];
+		$this->user = $user;
+	}
+	public function fill($data) {
+		foreach ( $data AS $k => $v ) {
+			$this->$k = $v;
+		}
+	}
+	public function allowedQueries() {
+		return array('select', 'insert', 'update', 'delete', 'alter');
+//		return explode(',', strtolower($this->allowed_queries));
+	}
+	public function allowQuery($query) {
+		if ( $this->user->isAdmin() ) {
+			return true;
+		}
+		$query = strtolower(query);
+		foreach ( $this->allowedQueries() AS $qtype ) {
+			if ( 0 === strpos($query, $qtype.' ') ) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
 
 function logincheck() {
@@ -54,26 +97,25 @@ function logincheck() {
 	return false;
 }
 
+function isAdmin() {
+	return logincheck() && $GLOBALS['g_objUser']->isAdmin();
+}
+
 
 if ( 'login.php' != basename($_SERVER['PHP_SELF']) && !logincheck() ) {
-	echo '<html><head><meta http-equiv="refresh" content="1;url=login.php"></head><body><p>You gotsta <a href="login.php">login</a>....</p></body></html>';
+	$goto = 'login.php?goto='.urlencode($_SERVER['REQUEST_URI']);
+	echo '<!doctype html?<html><head><meta http-equiv="refresh" content="1;url='.$goto.'"></head><body><p>You gotsta <a href="'.$goto.'">login</a>....</p></body></html>';
 	exit;
 }
 
 
 if ( logincheck() ) {
-	if ( $g_objUser->isAdmin() ) {
-		// admin
-		$g_arrAliases = $master->select('aliases', '1 ORDER BY alias');
-	}
-	else {
-		// normal user
-		$g_arrAliases = $master->select('aliases', 'public = 1 OR id IN ( SELECT alias_id FROM user_alias_access WHERE user_id = '.USER_ID.' ) ORDER BY alias');
-	}
+	$g_arrAliases = $g_objUser->getAliases();
 }
 else {
 	// guest
 	$g_arrAliases = $master->select('aliases', 'public = 1 ORDER BY alias');
 }
+//print_r($g_arrAliases);
 
 

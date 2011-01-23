@@ -23,6 +23,8 @@ class db_sqlite3 extends db_sqlite {
 
 	public function __construct( $f_szDatabase, $f_szUser = null, $f_szPass = null, $f_szDb = null ) {
 		$this->dbCon = new PDO('sqlite:'.$f_szDatabase);
+		$this->dbCon->sqliteCreateFunction('IF', array('db_sqlite', 'fn_if'));
+		$this->dbCon->sqliteCreateFunction('RAND', array('db_sqlite', 'fn_rand'));
 	}
 
 	public function saveError( $error = true ) {

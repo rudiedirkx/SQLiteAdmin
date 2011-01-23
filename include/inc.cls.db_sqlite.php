@@ -4,6 +4,14 @@ require_once(dirname(__FILE__).'/inc.cls.db_generic.php');
 
 class db_sqlite extends db_generic {
 
+	static function fn_if( $f_bool, $f_yes, $f_no ) {
+		return $f_bool ? $f_yes : $f_no;
+	}
+
+	static function fn_rand() {
+		return rand(0, 99999999);
+	}
+
 	static public function open( $file ) {
 		require_once(dirname(__FILE__).'/inc.cls.db_sqlite3.php');
 		$db = new db_sqlite3($file);

@@ -5,19 +5,17 @@ require_once('inc.config.php');
 //print_r($_POST);
 
 if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
+	if ( !empty($_FILES['file']['name']) && empty($_FILES['file']['error']) && 0 < $_FILES['file']['size'] ) {
+		$to = dirname(__FILE__).'/dbs/'.basename($_FILES['file']['name']);
+		move_uploaded_file($_FILES['file']['tmp_name'], $to);
+		chmod($to, 0777);
+		$_POST['path'] = $to;
+	}
 	if ( isset($_GET['edit']) ) {
 		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
 	}
 	else {
-#		if ( !empty($_FILES['file']['name']) && empty($_FILES['file']['error']) && 0 < $_FILES['file']['size'] ) {
-#			$to = 'dbs/'.basename($_FILES['file']['name']);
-#			move_uploaded_file($_FILES['file']['tmp_name'], $to);
-#			chmod($to, 0777);
-#			$_POST['path'] = $to;
-#		}
 		$master->insert('aliases', $_POST);
-#echo $master->last_query."\n";
-#echo $master->error;
 	}
 	header('Location: aliases.php');
 	exit;
@@ -48,17 +46,37 @@ else if ( logincheck() && isset($_GET['download']) ) {
 
 <body>
 
-<?php if ( logincheck() ): ?>
-<div style="padding-bottom:10px;">Logged in as: <b><?php echo $g_objUser->username; ?></b> | <a href="login.php?logout=1">logout</a></div>
-<?php endif; ?>
+<?php include('inc.logincheckheader.php'); ?>
 
 <table border="1" cellpadding="4" cellspacing="2">
-<tr><th></th><th>Alias</th><th>Public?</th><th>Path</th><th>Description</th><th>Version</th><th>Readable?</th><th>Size</th><th>Writable?</th><th></th><th></th></tr>
+<tr>
+	<th></th>
+	<th>Alias</th>
+	<th>Public?</th>
+	<th>Path</th>
+	<th>Description</th>
+	<th>Version</th>
+	<th>Readable?</th>
+	<th>Size</th>
+	<th>Writable?</th>
+	<th colspan="2"></th>
+</tr>
 <?php
 
 foreach ( $g_arrAliases AS $a ) {
-//	$version = !file_exists($a['path']) || 0 == filesize($a['path']) || 2000000 > filesize($a['path']) ? '-' : ( 'SQLite format 3' == substr(file_get_contents($a['path']), 0, 15) ? '3' : '2' );
-	$version = '?';
+	$version = '-';
+	if ( file_exists($a['path']) && 0 < filesize($a['path']) ) {
+		$version = '?';
+		$fp = fopen($a['path'], 'r');
+		$bytes = strtolower(fread($fp, 40));
+		fclose($fp);
+		if ( is_int(strpos($bytes, 'sqlite 2')) ) {
+			$version = 2;
+		}
+		else if ( is_int(strpos($bytes, 'sqlite format 3')) ) {
+			$version = 3;
+		}
+	}
 	echo '<tr>';
 	echo '<td><a href="database.php?db='.urlencode($a['alias']).'">open</a></td>';
 	echo '<td><a href="?edit='.urlencode($a['alias']).'">'.$a['alias'].'</a></td>';
@@ -69,7 +87,9 @@ foreach ( $g_arrAliases AS $a ) {
 	echo '<td align="center">'.(is_readable($a['path'])?'Y':'N').'</td>';
 	echo '<td align="right">'.( is_readable($a['path']) ? number_format(ceil(filesize($a['path'])/1024), 0, '.', ' ').' KB' : '-' ).'</td>';
 	echo '<td align="center">'.(is_writable($a['path'])?'Y':'N').'</td>';
+if ( isAdmin() ) {
 	echo '<td align="center"><a href="?delete='.urlencode($a['alias']).'">del</a></td>';
+}
 	echo '<td align="center"><a href="?download='.urlencode($a['alias']).'">download</a></td>';
 	echo '</tr>'."\n";
 }
@@ -91,12 +111,12 @@ if ( logincheck() && $g_objUser->isAdmin() ) {
 		}
 	}
 
-	echo '<form method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'"><table border="1" cellpadding="4" cellspacing="2">'."\n";
+	echo '<form enctype="multipart/form-data" method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'"><table border="1" cellpadding="4" cellspacing="2">'."\n";
 	echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
 	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? $arrAlias['alias'] : '' ).'" size="60" /></td></tr>'."\n";
 	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? $arrAlias['path'] : '' ).'" size="60" /></td></tr>'."\n";
-#	echo '<tr><th>OR</th><td></td></tr>'."\n";
-#	echo '<tr><th>File</th><td><input type="file" name="file" /></td></tr>'."\n";
+	echo '<tr><th colspan="2">OR</th></tr>'."\n";
+	echo '<tr><th>File</th><td><input type="file" name="file" /></td></tr>'."\n";
 	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? $arrAlias['description'] : '' ).'" size="60" /></td></tr>'."\n";
 	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
 	echo '</table></form>'."\n";

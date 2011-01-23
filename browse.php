@@ -17,8 +17,9 @@ if ( !empty($_GET['sql']) ) {
 echo '<form action="?">';
 echo '<input type="hidden" name="db" value="'.$_GET['db'].'" />';
 echo '<input type="hidden" name="tbl" value="'.$_GET['tbl'].'" />';
-echo '<input type="text" name="sql" value="'.htmlspecialchars($szSql).'" style="width:100%;" />';
+echo '<textarea id="sqlq" name="sql" style="width:99%;" rows=4 autofocus>'.htmlspecialchars($szSql).'</textarea>';
 echo '</form>';
+echo '<script>document.getElementById(\'sqlq\').addEventListener(\'keydown\', function(e){ if (e.keyCode == 13 && e.ctrlKey) { e.preventDefault(); this.form.submit(); } });</script>';
 
 $arrContents = $db->fetch($szSql);
 if ( $arrContents ) {
