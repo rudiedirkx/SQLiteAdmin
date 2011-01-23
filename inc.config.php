@@ -68,7 +68,14 @@ class UsedAlias {
 		}
 	}
 	public function allowedQueries() {
-		return array('select', 'insert', 'update', 'delete', 'alter');
+		static $aq;
+		if ( !isset($aq) ) {
+			$allow = $this->master->select('user_alias_access', 'user_id = '.(int)$this->user->id.' AND alias_id = '.(int)$this->id.'');
+//var_dump($allow);
+			$aq = $allow ? array_map('trim', explode(',', $allow[0]['allowed_queries'])) : array();
+		}
+		return $aq;
+//		return array('select', 'insert', 'update', 'delete', 'alter');
 //		return explode(',', strtolower($this->allowed_queries));
 	}
 	public function allowQuery($query) {

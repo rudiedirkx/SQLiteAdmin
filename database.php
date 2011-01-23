@@ -26,6 +26,7 @@ if ( isset($_POST['sql']) ) {
 	if ( 1 < count($arrQueries) ) {
 		$db->begin();
 	}
+	// Here somewhere should be the call(s) to $g_objUser->alias->allowQuery($query)
 	foreach ( $arrQueries AS $q ) {
 		echo '<div style="background-color:#faa;border:solid 3px white;padding:3px;">';
 		echo '<div style="background-color:#afa;margin-bottom:3px;padding:2px;">'.$q.'</div>';

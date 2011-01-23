@@ -18,9 +18,11 @@ if ( !$db->connected() ) {
 	exit('Can\'t connect: '.$db->error);
 }
 
+//print_r($objDb);
 $g_objUser->loadAlias($objDb->alias);
+//print_r($g_objUser);
 //print_r($g_objUser->alias->allowedQueries());
 
-echo '<fieldset><legend>Selected <a href="database.php?db='.$_GET['db'].'">database</a></legend>['.$_GET['db'].']: &nbsp; <u>'.$objDb->path.'</u> &nbsp; (<a href="aliases.php">aliases</a>)</fieldset><br />'."\n\n";
+echo '<fieldset><legend>Selected <a href="database.php?db='.$_GET['db'].'">database</a></legend>['.$_GET['db'].']: &nbsp; <u>'.$objDb->path.'</u> &nbsp; (<a href="aliases.php">aliases</a>) (current access: '.( $g_objUser->isAdmin() ? 'unlimited' : implode(', ', $g_objUser->alias->allowedQueries()) ).')</fieldset><br />'."\n\n";
 
 
