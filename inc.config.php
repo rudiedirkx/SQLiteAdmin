@@ -2,18 +2,39 @@
 
 require_once('./include/inc.cls.db_sqlite.php');
 
-$master = db_sqlite::open('./config.db');
+$master = db_sqlite::open(dirname(__FILE__).'/config/config.db');
 if ( !$master->connected() ) {
-	exit('Master isn\'t connected.');
-}
-
-if ( 0 == $master->count('sqlite_master', 'type = \'table\' AND tbl_name = \'aliases\'') ) {
-//	if ( !$master->query('CREATE TABLE aliases ( alias VARCHAR NOT NULL UNIQUE, path VARCHAR NOT NULL, description VARCHAR NOT NULL )') ) {
-		exit('Master Alias table missing.');
-//	}
+	exit('Can\'t connect to master.');
 }
 
 session_start();
+
+function ensureMasterStructure( $act = true ) {
+	global $master;
+
+	$mustExistTables = array('aliases', 'users', 'user_alias_access');
+	if ( 0 == $master->count('sqlite_master', "type = 'table' AND tbl_name IN ('".implode("', '", $mustExistTables)."')") ) {
+		// no structure
+		if ( !$act ) {
+			exit('Can\'t setup master structure.');
+		}
+
+		// import .database
+		foreach ( file(dirname(__FILE__).'/.database') AS $q ) {
+			if ( $q = trim($q) ) {
+				$master->query($q);
+			}
+		}
+
+		// log out user?
+		session_destroy();
+
+		return ensureMasterStructure(false);
+	}
+
+	return true;
+}
+ensureMasterStructure();
 
 define( 'QS', '?'.$_SERVER['QUERY_STRING'] );
 
@@ -96,11 +117,13 @@ function logincheck() {
 	if ( defined('USER_ID') && isset($GLOBALS['g_objUser']) ) {
 		return true;
 	}
+
 	if ( isset($_SESSION[S_NAME]['user_id'], $_SESSION[S_NAME]['logouttime']) && time() < (int)$_SESSION[S_NAME]['logouttime'] && 1 == count($u = $GLOBALS['master']->select('users', 'id = '.(int)$_SESSION[S_NAME]['user_id'])) ) {
 		$GLOBALS['g_objUser'] = new User($u[0]);
 		define( 'USER_ID', (int)$_SESSION[S_NAME]['user_id'] );
 		return true;
 	}
+
 	return false;
 }
 

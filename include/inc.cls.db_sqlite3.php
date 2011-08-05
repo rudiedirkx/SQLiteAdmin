@@ -25,6 +25,8 @@ class db_sqlite3 extends db_sqlite {
 		$this->dbCon = new PDO('sqlite:'.$f_szDatabase);
 		$this->dbCon->sqliteCreateFunction('IF', array('db_sqlite', 'fn_if'));
 		$this->dbCon->sqliteCreateFunction('RAND', array('db_sqlite', 'fn_rand'));
+		$this->dbCon->sqliteCreateFunction('MD5', array('db_sqlite', 'fn_md5'));
+		$this->dbCon->sqliteCreateFunction('SHA1', array('db_sqlite', 'fn_sha1'));
 	}
 
 	public function saveError( $error = true ) {

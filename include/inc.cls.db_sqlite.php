@@ -12,6 +12,14 @@ class db_sqlite extends db_generic {
 		return rand(0, 99999999);
 	}
 
+	static function fn_md5( $str ) {
+		return md5((string)$str);
+	}
+
+	static function fn_sha1( $str ) {
+		return sha1((string)$str);
+	}
+
 	static public function open( $file ) {
 		require_once(dirname(__FILE__).'/inc.cls.db_sqlite3.php');
 		$db = new db_sqlite3($file);

@@ -1,0 +1,3 @@
+shared_writable_dirs:
+    - /config
+	- /dbs
