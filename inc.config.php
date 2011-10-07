@@ -2,6 +2,8 @@
 
 require_once('./include/inc.cls.db_sqlite.php');
 
+header('Content-type: text/html; charset=utf-8');
+
 $master = db_sqlite::open(dirname(__FILE__).'/config/config.db');
 if ( !$master->connected() ) {
 	exit('Can\'t connect to master.');
@@ -134,7 +136,7 @@ function isAdmin() {
 
 if ( 'login.php' != basename($_SERVER['PHP_SELF']) && !logincheck() ) {
 	$goto = 'login.php?goto='.urlencode($_SERVER['REQUEST_URI']);
-	echo '<!doctype html?<html><head><meta http-equiv="refresh" content="1;url='.$goto.'"></head><body><p>You gotsta <a href="'.$goto.'">login</a>....</p></body></html>';
+	echo '<!doctype html><html><head><meta http-equiv="refresh" content="1; url='.$goto.'"></head><body><p>You gotsta <a href="'.$goto.'">login</a>....</p></body></html>';
 	exit;
 }
 
