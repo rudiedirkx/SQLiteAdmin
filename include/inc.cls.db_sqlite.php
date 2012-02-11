@@ -4,6 +4,15 @@ require_once(dirname(__FILE__).'/inc.cls.db_generic.php');
 
 class db_sqlite extends db_generic {
 
+	static function fn_regexp($pattern, $subject) {
+		$pattern = '/' . $pattern . '/i';
+		return preg_match($pattern, $subject);
+	}
+
+	static function fn_concat($a, $b) {
+		return implode(func_get_args());
+	}
+
 	static function fn_if( $f_bool, $f_yes, $f_no ) {
 		return $f_bool ? $f_yes : $f_no;
 	}

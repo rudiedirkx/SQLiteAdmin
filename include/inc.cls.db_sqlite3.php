@@ -23,10 +23,15 @@ class db_sqlite3 extends db_sqlite {
 
 	public function __construct( $f_szDatabase, $f_szUser = null, $f_szPass = null, $f_szDb = null ) {
 		$this->dbCon = new PDO('sqlite:'.$f_szDatabase);
-		$this->dbCon->sqliteCreateFunction('IF', array('db_sqlite', 'fn_if'));
-		$this->dbCon->sqliteCreateFunction('RAND', array('db_sqlite', 'fn_rand'));
-		$this->dbCon->sqliteCreateFunction('MD5', array('db_sqlite', 'fn_md5'));
-		$this->dbCon->sqliteCreateFunction('SHA1', array('db_sqlite', 'fn_sha1'));
+
+		$refl = new ReflectionClass(get_class($this));
+		$methods = $refl->getMethods(ReflectionMethod::IS_STATIC);
+		foreach ( $methods AS $method ) {
+			if ( 0 === strpos($method->name, 'fn_') ) {
+				$functionName = strtoupper(substr($method->name, 3));
+				$this->dbCon->sqliteCreateFunction($functionName, array('db_sqlite', $method->name));
+			}
+		}
 	}
 
 	public function saveError( $error = true ) {
