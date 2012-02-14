@@ -42,6 +42,7 @@ else if ( logincheck() && isset($_GET['download']) ) {
 
 <head>
 <title>Aliases<?php echo logincheck() ? ' ('.$g_objUser->username.')' : ''; ?></title>
+<link rel="stylesheet" href="base.css" />
 </head>
 
 <body>
@@ -63,6 +64,7 @@ else if ( logincheck() && isset($_GET['download']) ) {
 </tr>
 <?php
 
+$n = 0;
 foreach ( $g_arrAliases AS $a ) {
 	$version = '-';
 	if ( file_exists($a['path']) && 0 < filesize($a['path']) ) {
@@ -77,7 +79,11 @@ foreach ( $g_arrAliases AS $a ) {
 			$version = 3;
 		}
 	}
-	echo '<tr>';
+
+	$odd = !($n % 2);
+	$zebra = $odd ? 'odd' : 'even';
+
+	echo '<tr class="' . $zebra . '">';
 	echo '<td><a href="database.php?db='.urlencode($a['alias']).'">open</a></td>';
 	echo '<td><a href="?edit='.urlencode($a['alias']).'">'.$a['alias'].'</a></td>';
 	echo '<td align="center">'.( $a['public'] ? 'Y' : 'N' ).'</td>';
@@ -87,11 +93,13 @@ foreach ( $g_arrAliases AS $a ) {
 	echo '<td align="center">'.(is_readable($a['path'])?'Y':'N').'</td>';
 	echo '<td align="right">'.( is_readable($a['path']) ? number_format(ceil(filesize($a['path'])/1024), 0, '.', ' ').' KB' : '-' ).'</td>';
 	echo '<td align="center">'.(is_writable($a['path'])?'Y':'N').'</td>';
-if ( isAdmin() ) {
-	echo '<td align="center"><a href="?delete='.urlencode($a['alias']).'">del</a></td>';
-}
+	if ( isAdmin() ) {
+		echo '<td align="center"><a href="?delete='.urlencode($a['alias']).'">del</a></td>';
+	}
 	echo '<td align="center"><a href="?download='.urlencode($a['alias']).'">download</a></td>';
 	echo '</tr>'."\n";
+
+	$n++;
 }
 echo '</table>'."\n";
 
