@@ -20,6 +20,24 @@ foreach ( $tables AS $t ) {
 echo '</table>'."\n";
 echo '</fieldset>'."\n";
 
+?>
+<style>
+.result-meta {
+	background-color: #ddd;
+	margin-top: 3px;
+	padding: 3px;
+}
+.result-meta.success {
+	color: green;
+}
+.result-meta.error {
+	padding: 8px;
+	background-color: red;
+	color: #fff;
+}
+</style>
+<?php
+
 echo '<br />';
 
 echo '<form method="post" action="?db='.$_GET['db'].'&query=1"><fieldset><legend>Query</legend>'."\n";
@@ -30,13 +48,15 @@ if ( isset($_POST['sql']) ) {
 	}
 	// Here somewhere should be the call(s) to $g_objUser->alias->allowQuery($query)
 	foreach ( $arrQueries AS $q ) {
-		echo '<div style="background-color:#faa;border:solid 3px white;padding:3px;">';
-		echo '<div style="background-color:#afa;margin-bottom:3px;padding:2px;">'.$q.'</div>';
+		echo '<div style="background-color:#faa; border:solid 3px white;padding:3px;">';
+		echo '<div style="background-color:#afa; margin-bottom:3px;padding:2px;">'.$q.'</div>';
+		$error = false;
 		echo '<pre>';
 		if ( 0 === strpos($q2=strtolower(trim($q)), 'select') || 0 === strpos($q2, 'show') || 0 === strpos($q2, 'pragma') ) {
 			if ( is_bool($r = $db->fetch($q)) ) {
+				$error = true;
 				var_dump($r);
-				echo $db->error."\n";
+				echo 'ERROR: ' . $db->error."\n";
 			}
 			else {
 				print_r($r);
@@ -44,8 +64,9 @@ if ( isset($_POST['sql']) ) {
 		}
 		else {
 			var_dump($r = $db->query($q));
-			echo $db->error."\n";
 			if ( !$r ) {
+				$error = true;
+				echo 'ERROR: ' . $db->error."\n";
 				if ( 1 < count($arrQueries) ) {
 					$db->rollback();
 					echo '<div><b><font size=5>ROLLBACK EXECUTED AFTER ERROR</font></b></div>';
@@ -57,7 +78,8 @@ if ( isset($_POST['sql']) ) {
 			}
 		}
 		echo '</pre>';
-		echo '<div style="background-color:#ddd;margin-top:3px;padding:2px;">Affected: '.$db->affected_rows().'; Insert ID: '.$db->insert_id().'</div>';
+		$class = $error ? 'error' : 'success';
+		echo '<div class="result-meta '.$class.'">Affected: '.$db->affected_rows().'; Insert ID: '.$db->insert_id().'</div>';
 		echo '</div>';
 	}
 	if ( 1 < count($arrQueries) && empty($bRolledBack) ) {
