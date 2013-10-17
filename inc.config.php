@@ -136,7 +136,7 @@ function isAdmin() {
 
 if ( 'login.php' != basename($_SERVER['PHP_SELF']) && !logincheck() ) {
 	$goto = 'login.php?goto='.urlencode($_SERVER['REQUEST_URI']);
-	echo '<!doctype html><html><head><meta http-equiv="refresh" content="1; url='.$goto.'"></head><body><p>You gotsta <a href="'.$goto.'">login</a>....</p></body></html>';
+	header('Location: ' . $goto);
 	exit;
 }
 
