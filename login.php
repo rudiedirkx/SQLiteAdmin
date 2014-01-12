@@ -8,27 +8,28 @@ if ( !empty($_GET['logout']) ) {
 	exit;
 }
 
-else if ( isset($_GET['username'], $_GET['password'], $_GET['goto']) ) {
-	if ( false !== ($u=$master->select_one('users', 'id', "username = '".$master->escape($_GET['username'])."' AND password = '".sha1($_GET['password'])."'")) ) {
+else if ( isset($_POST['username'], $_POST['password'], $_POST['goto']) ) {
+	setcookie('sa_user', $_POST['username']);
+
+	$u = $master->select_one('users', 'id', "username = '" . $master->escape($_POST['username']) . "' AND password = '" . sha1($_POST['password']) . "'");
+	if ( $u ) {
 		$_SESSION[S_NAME] = array(
 			'user_id' => (int)$u,
 			'logouttime' => time()+3600
 		);
-		header('Location: '.( $_GET['goto'] ? $_GET['goto'] : 'aliases.php'));
+
+		header('Location: '.( $_POST['goto'] ? $_POST['goto'] : 'aliases.php'));
+		exit;
 	}
-	else {
-		header('Location: login.php?wrong=1');
-	}
+
+	header('Location: login.php?wrong=1');
 	exit;
 }
 
 ?>
-<form method="get" action="">
-
+<form method="post" action>
 	<input type="hidden" name="goto" value="<?php echo isset($_GET['goto']) ? $_GET['goto'] : ''; ?>" />
-
-	<p><input type="text" name="username" autofocus /> / <input type="password" name="password" /></p>
-
+	<p>Username: <input name="username" value="<?= @$_COOKIE['sa_user'] ?>" required autofocus /></p>
+	<p>Password: <input type="password" name="password" required /></p>
 	<p><input type="submit" value="Jack in!" /></p>
-
 </form>
