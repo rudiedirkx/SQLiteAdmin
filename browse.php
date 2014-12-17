@@ -15,24 +15,43 @@ if ( !empty($_GET['sql']) ) {
 
 $nocrop = (int)!empty($_GET['nocrop']);
 
-echo '<form action="">';
-echo '<input type="hidden" name="nocrop" value="'.$nocrop.'" />';
-echo '<input type="hidden" name="db" value="'.$_GET['db'].'" />';
-echo '<input type="hidden" name="tbl" value="'.$_GET['tbl'].'" />';
-echo '<textarea id="sqlq" name="sql" style="width:99%;" rows=4 autofocus>'.htmlspecialchars($szSql).'</textarea>';
-echo '</form>';
-echo '<script>document.getElementById(\'sqlq\').addEventListener(\'keydown\', function(e){ if (e.keyCode == 13 && e.ctrlKey) { e.preventDefault(); this.form.submit(); } });</script>';
+?>
+<form action="">
+	<input type="hidden" name="nocrop" value="<?= $nocrop ?>" />
+	<input type="hidden" name="db" value="<?= $_GET['db'] ?>" />
+	<input type="hidden" name="tbl" value="<?= $_GET['tbl'] ?>" />
+	<textarea id="sqlq" name="sql" style="width: 100%" rows="4" autofocus><?= htmlspecialchars($szSql) ?></textarea>
+</form>
+<script>
+document.getElementById('sqlq').addEventListener('keydown', function(e) {
+	if (e.keyCode == 13 && e.ctrlKey) {
+		e.preventDefault();
+		this.form.submit();
+	}
+});
+</script>
+<?php
 
 $arrContents = $db->fetch($szSql);
 if ( $arrContents ) {
-	echo '<style style="text/css">tbody.pre td { font-family:\'Courier New\'; font-size:13px; white-space:pre; }</style>';
-	echo '<table border="1" cellpadding="4" cellspacing="2">';
+	?>
+	<style>
+	tbody.pre td {
+		font-family: Courier New;
+		font-size: 13px;
+		white-space: pre;
+	}
+	</style>
+	<?php
+
 	$_GET['nocrop'] = (int)!$nocrop;
 	$qs = http_build_query($_GET);
-	echo '<thead><tr><th colspan="'.count($arrContents[0]).'">'.count($arrContents).' / '.$db->count($szTable, '1').' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
+
+	echo '<table border="1" cellpadding="4" cellspacing="2">';
+	echo '<thead><tr><th colspan="' . count($arrContents[0]) . '">' . count($arrContents) . ' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
 	echo '<tr>';
 	foreach ( $arrContents[0] AS $k => $v ) {
-		echo '<th>'.$k.'</th>';
+		echo '<th>' . $k . '</th>';
 	}
 	echo '</tr>';
 	echo '</thead><tbody class="pre">';
