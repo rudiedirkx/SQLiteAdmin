@@ -16,19 +16,32 @@ if ( !empty($_GET['sql']) ) {
 $nocrop = (int)!empty($_GET['nocrop']);
 
 ?>
-<form action="">
+<form action>
 	<input type="hidden" name="nocrop" value="<?= $nocrop ?>" />
 	<input type="hidden" name="db" value="<?= $_GET['db'] ?>" />
 	<input type="hidden" name="tbl" value="<?= $_GET['tbl'] ?>" />
-	<textarea id="sqlq" name="sql" style="width: 100%" rows="4" autofocus><?= htmlspecialchars($szSql) ?></textarea>
+	<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= htmlspecialchars($szSql) ?></textarea>
 </form>
+
 <script>
-document.getElementById('sqlq').addEventListener('keydown', function(e) {
+var rowser = function() {
+	this._rows || (this._rows = this.rows);
+	this.rows = this._rows-1;
+	while ( this.scrollHeight > this.offsetHeight ) {
+		this.rows++;
+	}
+	this.rows++;
+};
+var sqlq = document.getElementById('sqlq');
+sqlq.addEventListener('keydown', function(e) {
+	rowser.call(this);
 	if (e.keyCode == 13 && e.ctrlKey) {
 		e.preventDefault();
 		this.form.submit();
 	}
 });
+sqlq.addEventListener('keyup', rowser);
+rowser.call(sqlq);
 </script>
 <?php
 
@@ -45,6 +58,11 @@ if ( $arrContents ) {
 		font-family: Courier New;
 		font-size: 13px;
 		white-space: pre;
+		color: #444;
+	}
+	tbody.pre td.nil {
+		color: #ddd;
+		font-style: italic;
 	}
 	</style>
 	<?php
@@ -53,21 +71,31 @@ if ( $arrContents ) {
 	$qs = http_build_query($_GET);
 
 	echo '<table border="1" cellpadding="4" cellspacing="2">';
-	echo '<thead><tr><th colspan="' . count($arrContents[0]) . '">' . count($arrContents) . ' / ' . $total . ' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
+	echo '<thead>';
+	echo '<tr><th colspan="' . count($arrContents[0]) . '">' . count($arrContents) . ' / ' . $total . ' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
 	echo '<tr>';
 	foreach ( $arrContents[0] AS $k => $v ) {
 		echo '<th>' . $k . '</th>';
 	}
 	echo '</tr>';
-	echo '</thead><tbody class="pre">';
+	echo '</thead>';
+	echo '<tbody class="pre">';
 	foreach ( $arrContents AS $k => $r ) {
 		echo '<tr>';
 		foreach ( $r AS $k => $v ) {
-			echo '<td>'.( null === $v ? '<i>NULL</i>' : ( !$nocrop && 80 < strlen($v) ? htmlspecialchars(substr($v, 0, 78)).'...' : htmlspecialchars($v) ) ).'</td>';
+			if ( $v === null ) {
+				echo '<td class="nil">NIL</td>';
+			}
+			else {
+				echo '<td>';
+				echo !$nocrop && 80 < strlen($v) ? htmlspecialchars(substr($v, 0, 78)).'...' : htmlspecialchars($v);
+				echo '</td>';
+			}
 		}
 		echo '</tr>';
 	}
-	echo '</tbody></table>'."\n";
+	echo '</tbody>';
+	echo '</table>'."\n";
 }
 else {
 	if ( false === $arrContents ) {
