@@ -34,6 +34,11 @@ document.getElementById('sqlq').addEventListener('keydown', function(e) {
 
 $arrContents = $db->fetch($szSql);
 if ( $arrContents ) {
+	$szCountSql = $szSql;
+	$szCountSql = preg_replace('#LIMIT\s\d+,\s*\d+\s*$#', '', $szCountSql);
+	$szCountSql = preg_replace('#LIMIT\s\d+(?:\s+OFFSET\s+\d+)?\s*$#', '', $szCountSql);
+	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . $szCountSql . ')');
+
 	?>
 	<style>
 	tbody.pre td {
@@ -48,7 +53,7 @@ if ( $arrContents ) {
 	$qs = http_build_query($_GET);
 
 	echo '<table border="1" cellpadding="4" cellspacing="2">';
-	echo '<thead><tr><th colspan="' . count($arrContents[0]) . '">' . count($arrContents) . ' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
+	echo '<thead><tr><th colspan="' . count($arrContents[0]) . '">' . count($arrContents) . ' / ' . $total . ' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
 	echo '<tr>';
 	foreach ( $arrContents[0] AS $k => $v ) {
 		echo '<th>' . $k . '</th>';

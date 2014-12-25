@@ -95,8 +95,8 @@ class db_sqlite3 extends db_sqlite {
 		return $a;
 	}
 
-	public function select_one($tbl, $field, $where = '') {
-		$r = $this->query('SELECT '.$field.' FROM '.$tbl.( $where ? ' WHERE '.$where : '' ).' LIMIT 1;');
+	public function fetch_one($query) {
+		$r = $this->query($query);
 		if ( !$r ) {
 			return false;
 		}

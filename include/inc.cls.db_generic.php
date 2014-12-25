@@ -12,15 +12,15 @@ abstract class DB_Generic {
 	public function connected() {
 		return false;
 	}
-	public function escape( $v ) {}
-	public function insert_id() {}
-	public function affected_rows() {}
-	public function query( $f_szSqlQuery ) {}
-	public function fetch($f_szSqlQuery) {}
-	public function fetch_fields($f_szSqlQuery) {}
-	public function select_one($tbl, $field, $where = '') {}
-	public function count_rows($f_szSqlQuery) {}
-	public function select_by_field($tbl, $field, $where = '') {}
+	abstract public function escape($v);
+	abstract public function insert_id();
+	abstract public function affected_rows();
+	abstract public function query($f_szSqlQuery);
+	abstract public function fetch($f_szSqlQuery);
+	abstract public function fetch_fields($f_szSqlQuery);
+	abstract public function fetch_one($f_szSqlQuery);
+	abstract public function count_rows($f_szSqlQuery);
+	abstract public function select_by_field($tbl, $field, $where = '');
 
 	public function escapeAndQuote($v) {
 		if ( $v === true ) {
@@ -37,6 +37,10 @@ abstract class DB_Generic {
 
 	public function select($f_szTable, $f_szWhere = '') {
 		return $this->fetch('SELECT * FROM '.$f_szTable.( $f_szWhere ? ' WHERE '.$f_szWhere : '' ).';');
+	}
+
+	public function select_one($table, $field, $where = '') {
+		return $this->fetch_one('SELECT ' . $field . ' FROM ' . $table . ( $where ? ' WHERE ' . $where : '' ));
 	}
 
 	public function max($tbl, $field, $where = '') {
