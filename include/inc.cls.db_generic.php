@@ -22,6 +22,99 @@ abstract class DB_Generic {
 	abstract public function count_rows($f_szSqlQuery);
 	abstract public function select_by_field($tbl, $field, $where = '');
 
+	public function createTable( $tableName, $columns ) {
+		$sql = 'CREATE TABLE "' . $tableName . '" (' . "\n";
+		$first = true;
+		foreach ( $columns AS $columnName => $details ) {
+			// the very simple columns: array( 'a', 'b', 'c' )
+			if ( is_int($columnName) ) {
+				$columnName = $details;
+				$details = array();
+			}
+
+			$columnSQL = $this->columnSQL($columnName, $details);
+
+			$comma = $first ? ' ' : ',';
+			$sql .= '  ' . $comma . $columnSQL . "\n";
+
+			$first = false;
+		}
+		$sql .= ');';
+
+		return $this->query($sql);
+	}
+
+	public function columnSQL( $columnName, $details ) {
+		$properties = array();
+
+		// if PK, forget the rest
+		if ( !empty($details['pk']) ) {
+			$properties[] = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+		}
+		// check special stuff
+		else {
+			// type
+			$type = isset($details['type']) ? strtoupper($details['type']) : 'TEXT';
+			isset($details['unsigned']) && $type = 'INT';
+			$properties[] = $type;
+
+			// not null
+			if ( isset($details['null']) ) {
+				$properties[] = $details['null'] ? 'NULL' : 'NOT NULL';
+			}
+
+			// unique
+			if ( !empty($details['unique']) ) {
+				$properties[] = 'UNIQUE';
+			}
+
+			// constraints
+			if ( !empty($details['unsigned']) ) {
+				$properties[] = 'CHECK ("'.$columnName.'" >= 0)';
+			}
+			if ( isset($details['min']) ) {
+				$properties[] = 'CHECK ("'.$columnName.'" >= ' . (float)$details['min'] . ')';
+			}
+			if ( isset($details['max']) ) {
+				$properties[] = 'CHECK ("'.$columnName.'" <= ' . (float)$details['max'] . ')';
+			}
+
+			// default -- ignore NULL
+			if ( isset($details['default']) ) {
+				$D = $details['default'];
+				$properties[] = 'DEFAULT ' . ( is_int($D) || is_float($D) ? $D : $this->escapeAndQuote($D) );
+			}
+
+			// foreign key relationship
+			if ( isset($details['references']) ) {
+				list($tbl, $col) = $details['references'];
+				$properties[] = 'REFERENCES ' . $tbl . '(' . $col . ')';
+			}
+
+			// Case-insensitive (not the default in SQLite)
+			if ( 'TEXT' == $type ) {
+				$properties[] = 'COLLATE NOCASE';
+			}
+		}
+
+		// SQL
+		return '"' . $columnName . '" ' . implode(' ', $properties);
+	}
+
+	public function stringifyConditions( $conditions, $operator = 'AND' ) {
+		if ( is_string($conditions) ) {
+			return $conditions;
+		}
+
+		$array = array();
+		foreach ($conditions as $column => $value) {
+			$value = is_array($value) ? array_map(array($this, 'escapeAndQuote'), $value) : $this->escapeAndQuote($value);
+			$array[] = $column . ( is_array($value) ? ' IN (' . implode(', ', $value) . ')' : ' = ' . $value );
+		}
+
+		return implode(' ' . $operator . ' ', $array);
+	}
+
 	public function escapeAndQuote($v) {
 		if ( $v === true ) {
 			return "'1'";
@@ -35,11 +128,13 @@ abstract class DB_Generic {
 		return "'".$this->escape($v)."'";
 	}
 
-	public function select($f_szTable, $f_szWhere = '') {
-		return $this->fetch('SELECT * FROM '.$f_szTable.( $f_szWhere ? ' WHERE '.$f_szWhere : '' ).';');
+	public function select($table, $where = '') {
+		$where = $this->stringifyConditions($where);
+		return $this->fetch('SELECT * FROM '.$table.( $where ? ' WHERE '.$where : '' ).';');
 	}
 
 	public function select_one($table, $field, $where = '') {
+		$where = $this->stringifyConditions($where);
 		return $this->fetch_one('SELECT ' . $field . ' FROM ' . $table . ( $where ? ' WHERE ' . $where : '' ));
 	}
 
@@ -56,6 +151,7 @@ abstract class DB_Generic {
 	}
 
 	public function select_fields($tbl, $fields, $where = '') {
+		$where = $this->stringifyConditions($where);
 		return $this->fetch_fields('SELECT '.$fields.' FROM '.$tbl.( $where ? ' WHERE '.$where : '' ).';');
 	}
 

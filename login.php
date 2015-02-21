@@ -15,7 +15,7 @@ else if ( isset($_POST['username'], $_POST['password'], $_POST['goto']) ) {
 	if ( $u ) {
 		$_SESSION[S_NAME] = array(
 			'user_id' => (int)$u,
-			'logouttime' => time()+3600
+			'logouttime' => time()+86400,
 		);
 
 		header('Location: '.( $_POST['goto'] ? $_POST['goto'] : 'aliases.php'));

@@ -3,10 +3,11 @@
 require_once('./include/inc.cls.db_sqlite.php');
 
 header('Content-type: text/html; charset=utf-8');
+header('X-XSS-Protection: 0');
 
-$master = db_sqlite::open(dirname(__FILE__).'/config/config.db');
+$master = db_sqlite::open(__DIR__ . '/config/config.db');
 if ( !$master->connected() ) {
-	exit('Can\'t connect to master.');
+	exit("Can't connect to master.");
 }
 
 session_start();
@@ -14,22 +15,19 @@ session_start();
 function ensureMasterStructure( $act = true ) {
 	global $master;
 
-	$mustExistTables = array('aliases', 'users', 'user_alias_access');
-	if ( 0 == $master->count('sqlite_master', "type = 'table' AND tbl_name IN ('".implode("', '", $mustExistTables)."')") ) {
-		// no structure
+	$schema = require 'inc.db-schema.php';
+
+	$mustExistTables = array_keys($schema['tables']);
+	$exist = $master->select_fields('sqlite_master', 'tbl_name, tbl_name', array('type' => 'table', 'tbl_name' => $mustExistTables));
+	if ( count($exist) < count($mustExistTables) ) {
+		// No structure
 		if ( !$act ) {
-			exit('Can\'t setup master structure.');
+			exit("Can't setup master structure.");
 		}
 
-		// import .database
-		foreach ( file(dirname(__FILE__).'/.database') AS $q ) {
-			if ( $q = trim($q) ) {
-				$master->query($q);
-			}
+		foreach (array_diff_key($schema['tables'], $exist) as $tableName => $columns) {
+			$master->createTable($tableName, $columns);
 		}
-
-		// log out user?
-		session_destroy();
 
 		return ensureMasterStructure(false);
 	}

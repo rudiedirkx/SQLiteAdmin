@@ -2,25 +2,11 @@
 
 require_once('inc.database.php');
 
-$tables = $db->select('sqlite_master', "type IN ('table', 'view') ORDER BY tbl_name ASC");
-
-echo '<fieldset><legend>Tables</legend>'."\n";
-echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
-echo '<tr><th>sqlite_master</th><td><a href="browse.php'.QS.'&tbl=sqlite_master">'.$db->count('sqlite_master').' rows</a></td><td colspan="4"></td></tr>'."\n";
-foreach ( $tables AS $t ) {
-	$type = $t['type'] != 'table' ? ' (' . strtoupper($t['type']) . ')' : '';
-
-	echo '<tr>';
-	echo '<th align="left">' . $t['tbl_name'] . $type . '</th>';
-	echo '<td><a href="browse.php'.QS.'&tbl='.str_replace(' ', '+', $t['tbl_name']).'">'.$db->count('"'.$t['tbl_name'].'"').' rows</a></td>';
-	echo '<td><a href="structure.php'.QS.'&tbl='.$t['tbl_name'].'">structure</a></td>';
-	echo '<td><a href="insert.php'.QS.'&tbl='.$t['tbl_name'].'">insert</a></td>';
-	echo '<td><a href="#truncate_table.php'.QS.'&tbl='.$t['tbl_name'].'">truncate</a></td>';
-	echo '<td><a href="#drop_table.php'.QS.'&tbl='.$t['tbl_name'].'">drop</a></td>';
-	echo '</tr>';
-}
-echo '</table>'."\n";
-echo '</fieldset>'."\n";
+$tables = $db->select('sqlite_master', "
+	type IN ('table', 'view') AND
+	tbl_name NOT IN ('sqlite_sequence')
+	ORDER BY tbl_name ASC
+");
 
 ?>
 <style>
@@ -38,9 +24,38 @@ echo '</fieldset>'."\n";
 	color: #fff;
 }
 </style>
-<?php
 
-echo '<br />';
+<fieldset>
+	<legend>Tables</legend>
+	<table border="1" cellpadding="4" cellspacing="2">
+		<? foreach (array('sqlite_master', 'sqlite_sequence') as $table):
+			$rows = $db->count($table);
+			if ($rows !== false): ?>
+				<tr>
+					<th align="left"><?= $table ?></th>
+					<td><a href="browse.php<?= QS ?>&tbl=<?= $table ?>"><?= $db->count($table) ?> rows</a></td>
+					<td colspan="4"></td>
+				</tr>
+			<? endif ?>
+		<? endforeach ?>
+		<?foreach ($tables AS $t):
+			$type = $t['type'] != 'table' ? ' (' . strtoupper($t['type']) . ')' : '';
+			?>
+			<tr>
+				<th align="left"><?= $t['tbl_name'] . $type ?></th>
+				<td><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= $db->count('"'.$t['tbl_name'].'"') ?> rows</a></td>
+				<td><a href="structure.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">structure</a></td>
+				<td><a href="insert.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">insert</a></td>
+				<td><a href="#truncate_table.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">truncate</a></td>
+				<td><a href="#drop_table.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">drop</a></td>
+			</tr>
+		<?endforeach?>
+	</table>
+</fieldset>
+
+<br />
+
+<?php
 
 echo '<form method="post" action="?db='.$_GET['db'].'&query=1"><fieldset><legend>Query</legend>'."\n";
 if ( isset($_POST['sql']) ) {

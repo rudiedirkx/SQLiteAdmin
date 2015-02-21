@@ -20,6 +20,16 @@ return array(
 			'alias_id' => array('unsigned' => true),
 			'allowed_queries',
 		),
+		'favorites' => array(
+			'id' => array('pk' => true),
+			'user_id' => array('unsigned' => true),
+			'alias_id' => array('unsigned' => true),
+			'name',
+			'tbl',
+			'query',
+			'created_on' => array('unsigned' => true),
+			'is_public' => array('unsigned' => true),
+		),
 	),
 	'data' => array(
 		'aliases' => array(

@@ -16,12 +16,44 @@ if ( !empty($_GET['sql']) ) {
 $nocrop = (int)!empty($_GET['nocrop']);
 
 ?>
-<form action>
-	<input type="hidden" name="nocrop" value="<?= $nocrop ?>" />
-	<input type="hidden" name="db" value="<?= $_GET['db'] ?>" />
-	<input type="hidden" name="tbl" value="<?= $_GET['tbl'] ?>" />
-	<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= htmlspecialchars($szSql) ?></textarea>
-</form>
+<style>
+.form {
+	position: relative;
+}
+.form .favorite {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+.form .favorite button {
+	padding: 5px 12px;
+}
+
+tbody.pre td {
+	font-family: Courier New;
+	font-size: 13px;
+	white-space: pre;
+	color: #444;
+}
+tbody.pre td.nil {
+	color: #ddd;
+	font-style: italic;
+}
+</style>
+
+<div class="form">
+	<form class="query" action>
+		<input type="hidden" name="nocrop" value="<?= $nocrop ?>" />
+		<input type="hidden" name="db" value="<?= $_GET['db'] ?>" />
+		<input type="hidden" name="tbl" value="<?= $_GET['tbl'] ?>" />
+		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= htmlspecialchars($szSql) ?></textarea>
+	</form>
+
+	<form class="favorite" method="post" action="favorites.php?db=<?= $_GET['db'] ?>&tbl=<?= $_GET['tbl'] ?>">
+		<input type="hidden" name="sql" value="<?= htmlspecialchars($szSql) ?>" />
+		<button>Fav!</button>
+	</form>
+</div>
 
 <script>
 var rowser = function() {
@@ -51,21 +83,6 @@ if ( $arrContents ) {
 	$szCountSql = preg_replace('#LIMIT\s\d+,\s*\d+\s*$#', '', $szCountSql);
 	$szCountSql = preg_replace('#LIMIT\s\d+(?:\s+OFFSET\s+\d+)?\s*$#', '', $szCountSql);
 	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . $szCountSql . ')');
-
-	?>
-	<style>
-	tbody.pre td {
-		font-family: Courier New;
-		font-size: 13px;
-		white-space: pre;
-		color: #444;
-	}
-	tbody.pre td.nil {
-		color: #ddd;
-		font-style: italic;
-	}
-	</style>
-	<?php
 
 	$_GET['nocrop'] = (int)!$nocrop;
 	$qs = http_build_query($_GET);
