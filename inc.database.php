@@ -22,6 +22,12 @@ include 'inc.tpl.header.php';
 
 include 'inc.logincheckheader.php';
 
-echo '<fieldset><legend>Selected <a href="database.php?db='.$_GET['db'].'">database</a></legend>['.$_GET['db'].']: &nbsp; <u>'.$objDb->path.'</u> &nbsp; (<a href="aliases.php">aliases</a>) (current access: '.( $g_objUser->isAdmin() ? 'unlimited' : implode(', ', $g_objUser->alias->allowedQueries()) ).')</fieldset><br />'."\n\n";
-
-
+echo '<fieldset>';
+echo '<legend>';
+echo 'Selected <a href="database.php?db=' . $_GET['db'] . '">database</a> | ';
+echo '<a href="favorites.php?db=' . $_GET['db'] . '">favorites</a>';
+echo '</legend>';
+echo '[' . $_GET['db'] . ']: &nbsp; <u>' . $objDb->path . '</u> &nbsp; ';
+echo '(<a href="aliases.php">aliases</a>) ';
+echo '(current access: ' . ( $g_objUser->isAdmin() ? 'unlimited' : implode(', ', $g_objUser->alias->allowedQueries()) ) . ')';
+echo '</fieldset><br />' . "\n\n";
