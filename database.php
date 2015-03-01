@@ -33,7 +33,7 @@ $tables = $db->select('sqlite_master', "
 			if ($rows !== false): ?>
 				<tr>
 					<th align="left"><?= $table ?></th>
-					<td><a href="browse.php<?= QS ?>&tbl=<?= $table ?>"><?= $db->count($table) ?> rows</a></td>
+					<td><a href="browse.php<?= QS ?>&tbl=<?= $table ?>"><?= bigNumber($db->count($table)) ?> rows</a></td>
 					<td colspan="4"></td>
 				</tr>
 			<? endif ?>
@@ -43,7 +43,7 @@ $tables = $db->select('sqlite_master', "
 			?>
 			<tr>
 				<th align="left"><?= $t['tbl_name'] . $type ?></th>
-				<td><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= $db->count('"'.$t['tbl_name'].'"') ?> rows</a></td>
+				<td><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= bigNumber($db->count('"' . $t['tbl_name'] . '"')) ?> rows</a></td>
 				<td><a href="structure.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">structure</a></td>
 				<td><a href="insert.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">insert</a></td>
 				<td><a href="#truncate_table.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">truncate</a></td>

@@ -113,6 +113,10 @@ class UsedAlias {
 	}
 }
 
+function bigNumber( $number ) {
+	return number_format($number, 0, '.', ' ');
+}
+
 function logincheck() {
 	if ( defined('USER_ID') && isset($GLOBALS['g_objUser']) ) {
 		return true;
