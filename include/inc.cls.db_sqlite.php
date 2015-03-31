@@ -4,7 +4,21 @@ require_once(dirname(__FILE__).'/inc.cls.db_generic.php');
 
 class db_sqlite extends db_generic {
 
-	static function fn_regexp($pattern, $subject) {
+	static function fn_crop( $string, $left, $right ) {
+		$leftPos = strpos($string, $left);
+		if ( $leftPos !== false ) {
+			$string = substr($string, $leftPos + strlen($left));
+		}
+
+		$rightPos = strpos($string, $right);
+		if ( $rightPos !== false ) {
+			$string = substr($string, 0, $rightPos);
+		}
+
+		return $string;
+	}
+
+	static function fn_regexp( $pattern, $subject ) {
 		$pattern = '/' . $pattern . '/i';
 		return preg_match($pattern, $subject);
 	}

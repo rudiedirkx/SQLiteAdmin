@@ -22,8 +22,9 @@ class db_sqlite3 extends db_sqlite {
 	}
 
 	public function __construct( $f_szDatabase, $f_szUser = null, $f_szPass = null, $f_szDb = null ) {
-		$this->dbCon = new PDO('sqlite:'.$f_szDatabase);
+		$this->dbCon = new PDO('sqlite:' . $f_szDatabase);
 
+		// Register custom functions
 		$refl = new ReflectionClass(get_class($this));
 		$methods = $refl->getMethods(ReflectionMethod::IS_STATIC);
 		foreach ( $methods AS $method ) {
