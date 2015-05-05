@@ -117,6 +117,10 @@ class UsedAlias {
 	}
 }
 
+function html( $text ) {
+	return @htmlspecialchars($text, ENT_COMPAT, 'UTF-8') ?: @htmlspecialchars($text, ENT_COMPAT, 'ISO-8859-1');
+}
+
 function bigNumber( $number ) {
 	return number_format($number, 0, '.', ' ');
 }

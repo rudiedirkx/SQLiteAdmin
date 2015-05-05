@@ -2,15 +2,7 @@
 
 require_once('inc.config.php');
 
-//print_r($_POST);
-
 if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
-	if ( !empty($_FILES['file']['name']) && empty($_FILES['file']['error']) && 0 < $_FILES['file']['size'] ) {
-		$to = dirname(__FILE__).'/dbs/'.basename($_FILES['file']['name']);
-		move_uploaded_file($_FILES['file']['tmp_name'], $to);
-		chmod($to, 0777);
-		$_POST['path'] = $to;
-	}
 	if ( isset($_GET['edit']) ) {
 		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
 	}
@@ -119,15 +111,15 @@ if ( logincheck() && $g_objUser->isAdmin() ) {
 		}
 	}
 
-	echo '<form enctype="multipart/form-data" method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'"><table border="1" cellpadding="4" cellspacing="2">'."\n";
+	echo '<form enctype="multipart/form-data" method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'">';
+	echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
 	echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
-	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? $arrAlias['alias'] : '' ).'" size="60" /></td></tr>'."\n";
-	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? $arrAlias['path'] : '' ).'" size="60" /></td></tr>'."\n";
-	echo '<tr><th colspan="2">OR</th></tr>'."\n";
-	echo '<tr><th>File</th><td><input type="file" name="file" /></td></tr>'."\n";
-	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? $arrAlias['description'] : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? html($arrAlias['alias']) : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? html($arrAlias['path']) : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? html($arrAlias['description']) : '' ).'" size="60" /></td></tr>'."\n";
 	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
-	echo '</table></form>'."\n";
+	echo '</table>';
+	echo '</form>'."\n";
 
 }
 
