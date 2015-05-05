@@ -16,6 +16,10 @@ if ( !$db->connected() ) {
 	exit('Can\'t connect: '.$db->error);
 }
 
+// Better speed and no need for writable dirs.
+$db->query('PRAGMA synchronous=OFF');
+$db->query('PRAGMA journal_mode=OFF');
+
 $g_objUser->loadAlias($objDb->alias);
 
 include 'inc.tpl.header.php';

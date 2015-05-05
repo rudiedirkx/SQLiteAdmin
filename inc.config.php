@@ -10,6 +10,10 @@ if ( !$master->connected() ) {
 	exit("Can't connect to master.");
 }
 
+// Better speed and no need for writable dirs.
+$master->query('PRAGMA synchronous=OFF');
+$master->query('PRAGMA journal_mode=OFF');
+
 session_start();
 
 function ensureMasterStructure( $act = true ) {
