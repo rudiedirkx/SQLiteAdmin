@@ -34,7 +34,7 @@ $tables = $db->select('sqlite_master', "
 				<tr>
 					<th align="left"><?= $table ?></th>
 					<td><a href="browse.php<?= QS ?>&tbl=<?= $table ?>"><?= bigNumber($db->count($table)) ?> rows</a></td>
-					<td colspan="4"></td>
+					<td colspan="3"></td>
 				</tr>
 			<? endif ?>
 		<? endforeach ?>
@@ -46,8 +46,7 @@ $tables = $db->select('sqlite_master', "
 				<td><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= bigNumber($db->count('"' . $t['tbl_name'] . '"')) ?> rows</a></td>
 				<td><a href="structure.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">structure</a></td>
 				<td><a href="insert.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">insert</a></td>
-				<td><a href="#truncate_table.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">truncate</a></td>
-				<td><a href="#drop_table.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">drop</a></td>
+				<td><a href="<?= QS ?>&recreate=<?= $t['tbl_name'] ?>">recreate</a></td>
 			</tr>
 		<?endforeach?>
 	</table>
@@ -56,6 +55,28 @@ $tables = $db->select('sqlite_master', "
 <br />
 
 <?php
+
+$sql = trim(@$_POST['sql']);
+
+if ( !$sql && @$_GET['recreate'] ) {
+	$_tbl = preg_replace('#[^\w\d ]#', '', $_GET['recreate']);
+	$objTable = $db->structure($_tbl);
+	if ( $objTable ) {
+		$_columns = array();
+		foreach ( (array)$objTable as $_col => $_typ) {
+			$_columns[$_col] = $_col . ' ' . strtoupper($_typ ?: 'TEXT');
+		}
+
+		$sqls = array();
+		$sqls[] = 'CREATE TEMPORARY TABLE "tmp__' . $_tbl . '" (' . implode(', ', $_columns) . ');';
+		$sqls[] = 'INSERT INTO "tmp__' . $_tbl . '" SELECT ' . implode(', ', array_keys($_columns)) . ' FROM "' . $_tbl . '";';
+		$sqls[] = 'DROP TABLE "' . $_tbl . '";';
+		$sqls[] = 'CREATE TABLE "' . $_tbl . '" (' . implode(', ', $_columns) . ');';
+		$sqls[] = 'INSERT INTO "' . $_tbl . '" SELECT ' . implode(', ', array_keys($_columns)) . ' FROM "tmp__' . $_tbl . '";';
+
+		$sql = implode("\n\n", $sqls);
+	}
+}
 
 echo '<form method="post" action="?db='.$_GET['db'].'&query=1"><fieldset><legend>Query</legend>'."\n";
 if ( isset($_POST['sql']) ) {
@@ -104,7 +125,7 @@ if ( isset($_POST['sql']) ) {
 	}
 }
 echo '<div><b>END QUERIES WITH A <font size=6>;</font></b></div>';
-echo '<textarea name="sql" style="font-size:13px;width:100%;" rows="10">'.( isset($_POST['sql']) ? htmlspecialchars($_POST['sql']) : '' ).'</textarea><br /><input type="submit" value="Execute" />';
+echo '<textarea name="sql" style="font-size:13px;width:100%;" rows="10">' . htmlspecialchars($sql) . '</textarea><br /><input type="submit" value="Execute" />';
 echo '</fieldset></form>'."\n";
 
 
