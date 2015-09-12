@@ -72,23 +72,26 @@ foreach ( $g_arrAliases AS $a ) {
 		}
 	}
 
+	$kb = filesize($a['path']) / 1024;
+	$size =  $kb > 1500 ? round($kb / 1024, 1) . ' <b>MB</b>' : round($kb) . ' kB';
+
 	$odd = !($n % 2);
 	$zebra = $odd ? 'odd' : 'even';
 
 	echo '<tr class="' . $zebra . '">';
-	echo '<td><a href="database.php?db='.urlencode($a['alias']).'">open</a></td>';
-	echo '<td><a href="?edit='.urlencode($a['alias']).'">'.$a['alias'].'</a></td>';
-	echo '<td align="center">'.( $a['public'] ? 'Y' : 'N' ).'</td>';
-	echo '<td>'.$a['path'].'</td>';
-	echo '<td>'.$a['description'].'</td>';
-	echo '<td align="center">'.$version.'</td>';
-	echo '<td align="center">'.(is_readable($a['path'])?'Y':'N').'</td>';
-	echo '<td align="right">'.( is_readable($a['path']) ? number_format(ceil(filesize($a['path'])/1024), 0, '.', ' ').' KB' : '-' ).'</td>';
-	echo '<td align="center">'.(is_writable($a['path'])?'Y':'N').'</td>';
+	echo '<td><a href="database.php?db=' . urlencode($a['alias']) . '">open</a></td>';
+	echo '<td><a href="?edit=' . urlencode($a['alias']) . '">' . $a['alias'] . '</a></td>';
+	echo '<td align="center">' . ( $a['public'] ? 'Y' : 'N' ) . '</td>';
+	echo '<td>' . $a['path'] . '</td>';
+	echo '<td>' . $a['description'] . '</td>';
+	echo '<td align="center">' . $version . '</td>';
+	echo '<td align="center">' . ( is_readable($a['path']) ? 'Y' : 'N' ) . '</td>';
+	echo '<td align="right">' . ( is_readable($a['path']) ? $size : '-' ) . '</td>';
+	echo '<td align="center">' . ( is_writable($a['path']) ? 'Y' : 'N' ) . '</td>';
 	if ( isAdmin() ) {
-		echo '<td align="center"><a href="?delete='.urlencode($a['alias']).'">del</a></td>';
+		echo '<td align="center"><a href="?delete=' . urlencode($a['alias']) . '">del</a></td>';
 	}
-	echo '<td align="center"><a href="?download='.urlencode($a['alias']).'">download</a></td>';
+	echo '<td align="center"><a href="?download=' . urlencode($a['alias']) . '">download</a></td>';
 	echo '</tr>'."\n";
 
 	$n++;
