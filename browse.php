@@ -14,6 +14,7 @@ if ( !empty($_GET['sql']) ) {
 //$arrTable = $db->structure($szTable);
 
 $nocrop = (int)!empty($_GET['nocrop']);
+$flip = (int)!empty($_GET['flip']);
 
 ?>
 <style>
@@ -29,13 +30,15 @@ $nocrop = (int)!empty($_GET['nocrop']);
 	padding: 5px 12px;
 }
 
-tbody.pre td {
-	font-family: Courier New;
+.pre td,
+.pre th {
+	text-align: left;
+	font-family: monospace;
 	font-size: 13px;
 	white-space: pre;
 	color: #444;
 }
-tbody.pre td.nil {
+.pre td.nil {
 	color: #ddd;
 	font-style: italic;
 }
@@ -44,13 +47,14 @@ tbody.pre td.nil {
 <div class="form">
 	<form class="query" action>
 		<input type="hidden" name="nocrop" value="<?= $nocrop ?>" />
+		<input type="hidden" name="flip" value="<?= $flip ?>" />
 		<input type="hidden" name="db" value="<?= $_GET['db'] ?>" />
 		<input type="hidden" name="tbl" value="<?= $_GET['tbl'] ?>" />
-		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= htmlspecialchars($szSql) ?></textarea>
+		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= html($szSql) ?></textarea>
 	</form>
 
 	<form class="favorite" method="post" action="favorites.php?db=<?= $_GET['db'] ?>&tbl=<?= $_GET['tbl'] ?>">
-		<input type="hidden" name="sql" value="<?= htmlspecialchars($szSql) ?>" />
+		<input type="hidden" name="sql" value="<?= html($szSql) ?>" />
 		<button>Fav!</button>
 	</form>
 </div>
@@ -80,43 +84,68 @@ rowser.call(sqlq);
 $arrContents = $db->fetch($szSql);
 if ( $arrContents ) {
 	$szCountSql = $szSql;
-	$szCountSql = preg_replace('#LIMIT\s\d+,\s*\d+\s*$#', '', $szCountSql);
-	$szCountSql = preg_replace('#LIMIT\s\d+(?:\s+OFFSET\s+\d+)?\s*$#', '', $szCountSql);
-	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . $szCountSql . ')');
+	$szCountSql = preg_replace('#(limit|offset)\s+\d+(?:\s*,\s*\d+)?#i', '', $szCountSql);
+	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . trim($szCountSql) . ')');
 
-	$_GET['nocrop'] = (int)!$nocrop;
-	$qs = http_build_query($_GET);
+	$header = '';
+	$header .= count($arrContents) . ' / ' . $total . ' records | ';
+	$header .= '<a href="?' . http_build_query(array('nocrop' => (int)!$nocrop) + $_GET) . '">'.( $nocrop ? 'crop' : 'nocrop' ).'</a> | ';
+	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a>';
 
-	echo '<table border="1" cellpadding="4" cellspacing="2">';
-	echo '<thead>';
-	echo '<tr><th colspan="' . count($arrContents[0]) . '">' . count($arrContents) . ' / ' . $total . ' records | <a href="?'.$qs.'">'.( $nocrop ? 'crop' : 'nocrop' ).'</a></th></tr>';
-	echo '<tr>';
-	foreach ( $arrContents[0] AS $k => $v ) {
-		echo '<th>' . $k . '</th>';
+	echo '<table border="1" cellpadding="6" cellspacing="0">' . "\n";
+	echo '<thead>' . "\n";
+	echo '<tr><th colspan="' . ( $flip ? 2 : count($arrContents[0]) ) . '">' . $header . '</th></tr>' . "\n";
+	if ( !$flip ) {
+		echo '<tr class="pre">';
+		foreach ( $arrContents[0] AS $k => $v ) {
+			echo '<th>' . html($k) . '</th>' . "\n";
+		}
+		echo '</tr>' . "\n";
 	}
-	echo '</tr>';
-	echo '</thead>';
-	echo '<tbody class="pre">';
-	foreach ( $arrContents AS $k => $r ) {
-		echo '<tr>';
+	echo '</thead>' . "\n";
+	if ( !$flip ) {
+		echo '<tbody class="pre">' . "\n";
+	}
+	foreach ( $arrContents AS $i => $r ) {
+		if ( $flip ) {
+			echo '<tbody class="pre">' . "\n";
+			echo '<tr><th></th><th># ' . ($i+1) . '</th></tr>' . "\n";
+		}
+		else {
+			echo '<tr>' . "\n";
+		}
 		foreach ( $r AS $k => $v ) {
+			if ( $flip ) {
+				echo '<tr>' . "\n";
+				echo '<th>' . html($k) . '</th>' . "\n";
+			}
 			if ( $v === null ) {
-				echo '<td class="nil">NIL</td>';
+				echo '<td class="nil">NIL</td>' . "\n";
 			}
 			else {
 				echo '<td>';
-				echo !$nocrop && 80 < strlen($v) ? htmlspecialchars(substr($v, 0, 78)).'...' : htmlspecialchars($v);
-				echo '</td>';
+				echo !$nocrop && 80 < strlen($v) ? html(substr($v, 0, 78)).'...' : html($v);
+				echo '</td>' . "\n";
+			}
+			if ( $flip ) {
+				echo '</tr>' . "\n";
 			}
 		}
-		echo '</tr>';
+		if ( $flip ) {
+			echo '</tbody>' . "\n";
+		}
+		else {
+			echo '</tr>' . "\n";
+		}
 	}
-	echo '</tbody>';
+	if ( !$flip ) {
+		echo '</tbody>' . "\n";
+	}
 	echo '</table>'."\n";
 }
 else {
-	if ( false === $arrContents ) {
-		echo '<p>'.$db->error.'</p>';
+	if ( $arrContents === false ) {
+		echo '<pre style="padding: 10px; border: solid 2px red; background-color: #eee">' . $db->error . '</pre>';
 	}
 	else {
 		echo '<p>no records returned</p>';

@@ -125,7 +125,7 @@ if ( isset($_POST['sql']) ) {
 	}
 }
 echo '<div><b>END QUERIES WITH A <font size=6>;</font></b></div>';
-echo '<textarea name="sql" style="font-size:13px;width:100%;" rows="10">' . htmlspecialchars($sql) . '</textarea><br /><input type="submit" value="Execute" />';
+echo '<textarea name="sql" style="font-size:13px;width:100%;" rows="10">' . html($sql) . '</textarea><br /><input type="submit" value="Execute" />';
 echo '</fieldset></form>'."\n";
 
 

@@ -48,9 +48,9 @@ td.query {
 	<?foreach ($favorites as $fav):?>
 		<tr valign="top">
 			<td>
-				<a href="browse.php?db=<?= $_GET['db'] ?>&tbl=<?= $fav['tbl'] ?>&sql=<?= htmlspecialchars(urlencode($fav['query'])) ?>">Exec</a>
+				<a href="browse.php?db=<?= $_GET['db'] ?>&tbl=<?= $fav['tbl'] ?>&sql=<?= html(urlencode($fav['query'])) ?>">Exec</a>
 			</td>
-			<td class="query"><?= htmlspecialchars($fav['query']) ?></td>
+			<td class="query"><?= html($fav['query']) ?></td>
 			<td><?= date('Y-m-d H:i', $fav['created_on']) ?></td>
 			<td>
 				<form method="post" action>
