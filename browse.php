@@ -6,10 +6,6 @@ list($_db, $_tbl) = requireParams('db', 'tbl');
 require_once 'inc.database.php';
 require_once 'inc.table.php';
 
-require_once 'tpl.header.php';
-require_once 'tpl.database.php';
-require_once 'tpl.table.php';
-
 $iPage = max(0, (int)@$_GET['page']);
 $iLimit = 200;
 $iStart = $iPage * $iLimit;
@@ -19,6 +15,57 @@ $szSql = trim(@$_GET['sql'] ?: 'SELECT * FROM ' . $db->escapeAndQuoteStructure($
 $nocrop = (int)!empty($_GET['nocrop']);
 $flip = (int)!empty($_GET['flip']);
 $export = (int)!empty($_GET['export']);
+
+$arrContents = $db->fetch($szSql);
+if ( $arrContents ) {
+	$cell = function($value, $th = false) use ($export) {
+		return $export ? $value : array('th' => $th, 'data' => $value);
+	};
+
+	$data = array();
+	if ($flip) {
+		foreach ($arrContents as $i => $row) {
+			// Row delimiter row
+			$data[] = array(
+				$cell('', true),
+				$cell('# ' . ($i+1), true),
+			);
+
+			foreach ($row as $name => $value) {
+				// One row per column
+				$data[] = array(
+					$cell($name, true),
+					$cell($value),
+				);
+			}
+		}
+	}
+	else {
+		foreach ($arrContents as $i => $row) {
+			$subdata = array();
+			foreach ($row as $name => $value) {
+				// Header
+				if ( !isset($data[1]) ) {
+					$data[0][] = $cell($name, true);
+				}
+
+				// Column
+				$subdata[] = $cell($value, false);
+			}
+			$data[] = $subdata;
+		}
+	}
+
+	if ( $export ) {
+		csv_header('export.csv');
+		echo csv_rows($data);
+		exit;
+	}
+}
+
+require_once 'tpl.header.php';
+require_once 'tpl.database.php';
+require_once 'tpl.table.php';
 
 ?>
 <style>
@@ -85,7 +132,6 @@ rowser.call(sqlq);
 </script>
 <?php
 
-$arrContents = $db->fetch($szSql);
 if ( $arrContents ) {
 	$szCountSql = $szSql;
 	$szCountSql = preg_replace('#(limit|offset)\s+\d+(?:\s*,\s*\d+)?#i', '', $szCountSql);
@@ -94,7 +140,8 @@ if ( $arrContents ) {
 	$header = '';
 	$header .= count($arrContents) . ' / ' . $total . ' records | ';
 	$header .= '<a href="?' . http_build_query(array('nocrop' => (int)!$nocrop) + $_GET) . '">'.( $nocrop ? 'crop' : 'nocrop' ).'</a> | ';
-	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a>';
+	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a> | ';
+	$header .= '<a href="?' . http_build_query(array('export' => 1) + $_GET) . '">export</a>';
 
 	$cropper = function($value) use ($nocrop) {
 		return $nocrop || mb_strlen($value) <= 80 ? $value : mb_substr($value, 0, 78) . '...';
@@ -103,44 +150,6 @@ if ( $arrContents ) {
 	$encoder = function($value) use ($export) {
 		return $export ? (string) $value : ( $value === null ? '<i>NIL</i>' : html($value) );
 	};
-
-	$cell = function($value, $th = false) {
-		return array('th' => $th, 'data' => $value);
-	};
-
-	$data = array();
-	if ($flip) {
-		foreach ($arrContents as $i => $row) {
-			// Row delimiter row
-			$data[] = array(
-				$cell('', true),
-				$cell('# ' . ($i+1), true),
-			);
-
-			foreach ($row as $name => $value) {
-				// One row per column
-				$data[] = array(
-					$cell($name, true),
-					$cell($value),
-				);
-			}
-		}
-	}
-	else {
-		foreach ($arrContents as $i => $row) {
-			$subdata = array();
-			foreach ($row as $name => $value) {
-				// Header
-				if ( !isset($data[1]) ) {
-					$data[0][] = $cell($name, true);
-				}
-
-				// Column
-				$subdata[] = $cell($value, false);
-			}
-			$data[] = $subdata;
-		}
-	}
 
 	echo '<table border="1" cellpadding="6" cellspacing="0">' . "\n";
 	echo '<thead>' . "\n";

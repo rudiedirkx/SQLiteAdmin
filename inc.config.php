@@ -1,6 +1,7 @@
 <?php
 
-require_once('./include/inc.cls.db_sqlite.php');
+require_once __DIR__ . '/include/inc.cls.db_sqlite.php';
+require_once __DIR__ . '/inc.functions.php';
 
 header('Content-type: text/html; charset=utf-8');
 header('X-XSS-Protection: 0');
