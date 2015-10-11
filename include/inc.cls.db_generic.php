@@ -22,6 +22,13 @@ abstract class DB_Generic {
 	abstract public function count_rows($f_szSqlQuery);
 	abstract public function select_by_field($tbl, $field, $where = '');
 
+	public function getTables() {
+		return $this->select_by_field('sqlite_master', 'tbl_name', "
+			type IN ('table', 'view') AND tbl_name NOT IN ('sqlite_sequence', 'sqlite_master')
+			ORDER BY tbl_name ASC
+		");
+	}
+
 	public function createTable( $tableName, $columns ) {
 		$sql = 'CREATE TABLE "' . $tableName . '" (' . "\n";
 		$first = true;
@@ -115,6 +122,10 @@ abstract class DB_Generic {
 		return implode(' ' . $operator . ' ', $array);
 	}
 
+	public function escapeAndQuoteStructure( $value ) {
+		return '"' . addslashes($value) . '"';
+	}
+
 	public function escapeAndQuote($v) {
 		if ( $v === true ) {
 			return "'1'";
@@ -125,7 +136,7 @@ abstract class DB_Generic {
 		else if ( $v === null ) {
 			return 'NULL';
 		}
-		return "'".$this->escape($v)."'";
+		return "'" . $this->escape($v) . "'";
 	}
 
 	public function select($table, $where = '') {

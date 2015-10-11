@@ -1,6 +1,14 @@
 <?php
 
-require_once('inc.table.php');
+require_once 'inc.config.php';
+
+list($_db, $_tbl) = requireParams('db', 'tbl');
+require_once 'inc.database.php';
+require_once 'inc.table.php';
+
+require_once 'tpl.header.php';
+require_once 'tpl.database.php';
+require_once 'tpl.table.php';
 
 if ( isset($_POST['insert']) ) {
 	function str_concat($arr) {
@@ -16,7 +24,7 @@ if ( isset($_POST['insert']) ) {
 	foreach ( $_POST['insert'] AS $rec ) {
 		if ( '' != str_concat($rec) ) {
 			$iRows++;
-			$i = $db->insert($szTable, $rec);
+			$i = $db->insert($_tbl, $rec);
 			if ( !$i ) {
 				$db->rollback();
 				echo '[Error: '.$db->error."]\n";
@@ -30,8 +38,8 @@ if ( isset($_POST['insert']) ) {
 	exit;
 }
 
-$cols = (array)$db->structure($szTable);
-if ( 1 == count($pk = $db->indices($szTable, true)) ) {
+$cols = (array)$db->structure($_tbl);
+if ( 1 == count($pk = $db->indices($_tbl, true)) ) {
 	foreach ( $cols AS $k => $v ) {
 		if ( $k == $pk[0] ) {
 			unset($cols[$k]);

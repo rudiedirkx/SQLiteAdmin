@@ -1,20 +1,24 @@
 <?php
 
-require_once('inc.table.php');
+require_once 'inc.config.php';
 
-$iPage = isset($_GET['page']) && 0 <= (int)$_GET['page'] ? (int)$_GET['page'] : 0;
+list($_db, $_tbl) = requireParams('db', 'tbl');
+require_once 'inc.database.php';
+require_once 'inc.table.php';
+
+require_once 'tpl.header.php';
+require_once 'tpl.database.php';
+require_once 'tpl.table.php';
+
+$iPage = max(0, (int)@$_GET['page']);
 $iLimit = 200;
 $iStart = $iPage * $iLimit;
 
-$szSql = 'SELECT * FROM "'.$szTable.'" WHERE 1 LIMIT '.$iStart.', '.$iLimit;
-if ( !empty($_GET['sql']) ) {
-	$szSql = $_GET['sql'];
-}
-
-//$arrTable = $db->structure($szTable);
+$szSql = trim(@$_GET['sql'] ?: 'SELECT * FROM ' . $db->escapeAndQuoteStructure($_tbl) . ' WHERE 1 LIMIT ' . $iStart . ', ' . $iLimit);
 
 $nocrop = (int)!empty($_GET['nocrop']);
 $flip = (int)!empty($_GET['flip']);
+$export = (int)!empty($_GET['export']);
 
 ?>
 <style>
@@ -46,14 +50,14 @@ $flip = (int)!empty($_GET['flip']);
 
 <div class="form">
 	<form class="query" action>
-		<input type="hidden" name="nocrop" value="<?= $nocrop ?>" />
-		<input type="hidden" name="flip" value="<?= $flip ?>" />
-		<input type="hidden" name="db" value="<?= $_GET['db'] ?>" />
-		<input type="hidden" name="tbl" value="<?= $_GET['tbl'] ?>" />
+		<input type="hidden" name="nocrop" value="<?= (int)$nocrop ?>" />
+		<input type="hidden" name="flip" value="<?= (int)$flip ?>" />
+		<input type="hidden" name="db" value="<?= html($_db) ?>" />
+		<input type="hidden" name="tbl" value="<?= html($_tbl) ?>" />
 		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= html($szSql) ?></textarea>
 	</form>
 
-	<form class="favorite" method="post" action="favorites.php?db=<?= $_GET['db'] ?>&tbl=<?= $_GET['tbl'] ?>">
+	<form class="favorite" method="post" action="favorites.php?db=<?= html($_db) ?>&tbl=<?= html($_tbl) ?>">
 		<input type="hidden" name="sql" value="<?= html($szSql) ?>" />
 		<button>Fav!</button>
 	</form>
@@ -92,56 +96,67 @@ if ( $arrContents ) {
 	$header .= '<a href="?' . http_build_query(array('nocrop' => (int)!$nocrop) + $_GET) . '">'.( $nocrop ? 'crop' : 'nocrop' ).'</a> | ';
 	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a>';
 
+	$cropper = function($value) use ($nocrop) {
+		return $nocrop || mb_strlen($value) <= 80 ? $value : mb_substr($value, 0, 78) . '...';
+	};
+
+	$encoder = function($value) use ($export) {
+		return $export ? (string) $value : ( $value === null ? '<i>NIL</i>' : html($value) );
+	};
+
+	$cell = function($value, $th = false) {
+		return array('th' => $th, 'data' => $value);
+	};
+
+	$data = array();
+	if ($flip) {
+		foreach ($arrContents as $i => $row) {
+			// Row delimiter row
+			$data[] = array(
+				$cell('', true),
+				$cell('# ' . ($i+1), true),
+			);
+
+			foreach ($row as $name => $value) {
+				// One row per column
+				$data[] = array(
+					$cell($name, true),
+					$cell($value),
+				);
+			}
+		}
+	}
+	else {
+		foreach ($arrContents as $i => $row) {
+			$subdata = array();
+			foreach ($row as $name => $value) {
+				// Header
+				if ( !isset($data[1]) ) {
+					$data[0][] = $cell($name, true);
+				}
+
+				// Column
+				$subdata[] = $cell($value, false);
+			}
+			$data[] = $subdata;
+		}
+	}
+
 	echo '<table border="1" cellpadding="6" cellspacing="0">' . "\n";
 	echo '<thead>' . "\n";
-	echo '<tr><th colspan="' . ( $flip ? 2 : count($arrContents[0]) ) . '">' . $header . '</th></tr>' . "\n";
-	if ( !$flip ) {
-		echo '<tr class="pre">';
-		foreach ( $arrContents[0] AS $k => $v ) {
-			echo '<th>' . html($k) . '</th>' . "\n";
-		}
-		echo '</tr>' . "\n";
-	}
+	echo '<tr><th colspan="' . count($data[0]) . '">' . $header . '</th></tr>' . "\n";
 	echo '</thead>' . "\n";
-	if ( !$flip ) {
-		echo '<tbody class="pre">' . "\n";
+	echo '<tbody class="pre">' . "\n";
+	foreach ($data as $i => $row) {
+		echo '<tr>';
+		foreach ($row as $j => $cell) {
+			$tag = $cell['th'] ? 'th' : 'td';
+			echo '<' . $tag . '>' . $encoder($cropper($cell['data'])) . '</' . $tag . '>';
+		}
+		echo '</tr>';
 	}
-	foreach ( $arrContents AS $i => $r ) {
-		if ( $flip ) {
-			echo '<tbody class="pre">' . "\n";
-			echo '<tr><th></th><th># ' . ($i+1) . '</th></tr>' . "\n";
-		}
-		else {
-			echo '<tr>' . "\n";
-		}
-		foreach ( $r AS $k => $v ) {
-			if ( $flip ) {
-				echo '<tr>' . "\n";
-				echo '<th>' . html($k) . '</th>' . "\n";
-			}
-			if ( $v === null ) {
-				echo '<td class="nil">NIL</td>' . "\n";
-			}
-			else {
-				echo '<td>';
-				echo !$nocrop && 80 < strlen($v) ? html(substr($v, 0, 78)).'...' : html($v);
-				echo '</td>' . "\n";
-			}
-			if ( $flip ) {
-				echo '</tr>' . "\n";
-			}
-		}
-		if ( $flip ) {
-			echo '</tbody>' . "\n";
-		}
-		else {
-			echo '</tr>' . "\n";
-		}
-	}
-	if ( !$flip ) {
-		echo '</tbody>' . "\n";
-	}
-	echo '</table>'."\n";
+	echo '</tbody>' . "\n";
+	echo '</table>' . "\n";
 }
 else {
 	if ( $arrContents === false ) {

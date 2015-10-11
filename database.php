@@ -1,12 +1,14 @@
 <?php
 
-require_once('inc.database.php');
+require_once 'inc.config.php';
 
-$tables = $db->select('sqlite_master', "
-	type IN ('table', 'view') AND
-	tbl_name NOT IN ('sqlite_sequence')
-	ORDER BY tbl_name ASC
-");
+list($_db) = requireParams('db');
+require_once 'inc.database.php';
+
+require_once 'tpl.header.php';
+require_once 'tpl.database.php';
+
+$tables = $db->getTables();
 
 ?>
 <style>
@@ -78,7 +80,7 @@ if ( !$sql && @$_GET['recreate'] ) {
 	}
 }
 
-echo '<form method="post" action="?db='.$_GET['db'].'&query=1"><fieldset><legend>Query</legend>'."\n";
+echo '<form method="post" action="?db=' . $_GET['db'] . '&query=1"><fieldset><legend>Query</legend>'."\n";
 if ( isset($_POST['sql']) ) {
 	$arrQueries = array_filter(explode(";\n\n", str_replace("\r", '', $_POST['sql'])), create_function('$q', 'return "" != trim($q);'));
 	if ( 1 < count($arrQueries) ) {
@@ -87,7 +89,7 @@ if ( isset($_POST['sql']) ) {
 	// Here somewhere should be the call(s) to $g_objUser->alias->allowQuery($query)
 	foreach ( $arrQueries AS $q ) {
 		echo '<div style="background-color:#faa; border:solid 3px white;padding:3px;">';
-		echo '<div style="background-color:#afa; margin-bottom:3px;padding:2px;">'.$q.'</div>';
+		echo '<div style="background-color:#afa; margin-bottom:3px;padding:2px;">' . html($q) . '</div>';
 		$error = false;
 		echo '<pre>';
 		if ( 0 === strpos($q2=strtolower(trim($q)), 'select') || 0 === strpos($q2, 'show') || 0 === strpos($q2, 'pragma') ) {
@@ -97,11 +99,15 @@ if ( isset($_POST['sql']) ) {
 				echo 'ERROR: ' . $db->error."\n";
 			}
 			else {
-				print_r($r);
+				echo html(print_r($r, 1));
 			}
 		}
 		else {
+			ob_start();
 			var_dump($r = $db->query($q));
+			$dump = ob_get_clean();
+			echo html($dump);
+
 			if ( !$r ) {
 				$error = true;
 				echo 'ERROR: ' . $db->error."\n";
@@ -127,5 +133,3 @@ if ( isset($_POST['sql']) ) {
 echo '<div><b>END QUERIES WITH A <font size=6>;</font></b></div>';
 echo '<textarea name="sql" style="font-size:13px;width:100%;" rows="10">' . html($sql) . '</textarea><br /><input type="submit" value="Execute" />';
 echo '</fieldset></form>'."\n";
-
-

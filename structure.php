@@ -1,33 +1,57 @@
 <?php
 
-require_once('inc.table.php');
+require_once 'inc.config.php';
+
+list($_db, $_tbl) = requireParams('db', 'tbl');
+require_once 'inc.database.php';
+require_once 'inc.table.php';
+
+require_once 'tpl.header.php';
+require_once 'tpl.database.php';
+require_once 'tpl.table.php';
 
 if ( isset($_POST['name'], $_POST['type']) ) {
-	var_dump($db->addColumn($szTable, $_POST['name'].' '.$_POST['type']));
-	echo '[Error: '.$db->error."]\n";
+	var_dump($db->addColumn($_tbl, $_POST['name'] . ' ' . $_POST['type']));
+	echo '[Error: ' . $db->error . "]\n";
 	exit;
 }
 
 echo '<pre>';
-echo $objTbl->sql."\n\n";
+echo html(trim($objTbl->sql));
+echo '</pre>';
 
-$objTable = $db->structure($szTable);
-echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
-foreach ( $objTable AS $c => $t ) {
-	echo '<tr><th>'.$c.'</th><td>'.$t.'</td><td><a href="browse.php'.QS.'&sql=SELECT '.$c.', COUNT(1) AS num FROM '.$szTable.' GROUP BY '.$c.'">browse</a></td></tr>';
+$columns = $db->structure($_tbl);
+echo '<table border="1" cellpadding="4" cellspacing="2">';
+foreach ( $columns AS $c => $t ) {
+	$grouper = 'SELECT ' . $db->escapeAndQuoteStructure($c) . ', COUNT(1) AS num FROM ' . $db->escapeAndQuoteStructure($_tbl) . ' GROUP BY ' . $db->escapeAndQuoteStructure($c);
+
+	echo '<tr>';
+	echo '<th>' . $c . '</th>';
+	echo '<td>' . $t . '</td>';
+	echo '<td><a href="browse.php?db=' . html($_db) . '&tbl=' . html($_tbl) . '&sql=' . html($grouper) . '">browse</a></td>';
+	echo '</tr>';
 }
-echo '</table>'."\n";
+echo '</table>';
 
-echo "\n";
+echo '<br />';
 
-echo '<form method="post"><fieldset><legend>Add column</legend>Naam: <input type="text" name="name" /><br />Type: <select name="type"><option value="INTEGER">INTEGER</option><option value="TEXT">TEXT</option><option value="FLOAT">FLOAT</option></select><br /><input type="submit" value="Add!" /></fieldset></form>'."\n";
+echo '<form method="post">';
+echo '<fieldset>';
+echo '<legend>Add column</legend>';
+echo 'Naam: <input type="text" name="name" /><br />';
+echo 'Type: <select name="type"><option>INTEGER</option><option>TEXT</option><option>FLOAT</option></select><br />';
+echo '<input type="submit" value="Add!" />';
+echo '</fieldset>';
+echo '</form>';
 
 echo "\nIndices:\n";
-$arrIndices = $db->indices($szTable);
-print_r( $arrIndices );
+$arrIndices = $db->indices($_tbl);
+echo '<pre>';
+print_r($arrIndices);
+echo '</pre>';
 
 echo "\nPRIMARY KEY:\n";
-$arrPK = $db->indices($szTable, true);
-print_r( $arrPK );
-
-
+$arrPK = $db->indices($_tbl, true);
+echo '<pre>';
+print_r($arrPK);
+echo '</pre>';

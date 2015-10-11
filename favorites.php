@@ -1,14 +1,13 @@
 <?php
 
-require_once('inc.database.php');
+require_once 'inc.config.php';
 
-// echo '<pre>';
-// print_r($objDb);
-// print_r($g_objUser);
-// exit;
+list($_db) = requireParams('db');
+require_once 'inc.database.php';
 
 $conditions = array('user_id' => $g_objUser->id, 'alias_id' => $g_objUser->alias->id);
 
+// CREATE
 if ( isset($_POST['sql'], $_GET['tbl']) ) {
 	$insert = $conditions + array(
 		'name' => '',
@@ -19,7 +18,7 @@ if ( isset($_POST['sql'], $_GET['tbl']) ) {
 	);
 	$ok = $master->insert('favorites', $insert);
 	if ( $ok ) {
-		echo '<meta http-equiv="refresh" content="0; url=favorites.php?db=' . $_GET['db'] . '" />';
+		header('Location: favorites.php?db=' . $_db);
 		exit;
 	}
 
@@ -27,12 +26,16 @@ if ( isset($_POST['sql'], $_GET['tbl']) ) {
 	exit;
 }
 
+// DELETE
 else if ( isset($_POST['del']) ) {
 	$where = $master->stringifyConditions($conditions + array('id' => $_POST['del']));
 	$master->delete('favorites', $where);
-	echo '<meta http-equiv="refresh" content="0; url=favorites.php?db=' . $_GET['db'] . '" />';
+	header('Location: favorites.php?db=' . $_db);
 	exit;
 }
+
+require_once 'tpl.header.php';
+require_once 'tpl.database.php';
 
 $favorites = $master->select('favorites', $master->stringifyConditions($conditions) . ' ORDER BY created_on DESC');
 
@@ -48,12 +51,12 @@ td.query {
 	<?foreach ($favorites as $fav):?>
 		<tr valign="top">
 			<td>
-				<a href="browse.php?db=<?= $_GET['db'] ?>&tbl=<?= $fav['tbl'] ?>&sql=<?= html(urlencode($fav['query'])) ?>">Exec</a>
+				<a href="browse.php?db=<?= $_db ?>&tbl=<?= $fav['tbl'] ?>&sql=<?= html(urlencode($fav['query'])) ?>">Exec</a>
 			</td>
 			<td class="query"><?= html($fav['query']) ?></td>
 			<td><?= date('Y-m-d H:i', $fav['created_on']) ?></td>
 			<td>
-				<form method="post" action>
+				<form method="post">
 					<input type="hidden" name="del" value="<?= $fav['id'] ?>" />
 					<button>del</button>
 				</form>
