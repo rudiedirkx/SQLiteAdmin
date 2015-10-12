@@ -1,6 +1,6 @@
 <?php
 
-require_once('inc.config.php');
+require_once 'inc.config.php';
 
 if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
 	if ( isset($_GET['edit']) ) {
@@ -19,28 +19,9 @@ else if ( logincheck() && $g_objUser->isAdmin() && isset($_GET['delete']) ) {
 	exit;
 }
 
-else if ( logincheck() && isset($_GET['download']) ) {
-	$alias = $g_objUser->getAliasByAlias( $_GET['download'] );
-	if ( $alias && file_exists($alias->path) && is_readable($alias->path) ) {
-		header('Content-type: text/plain');
-		header('Content-disposition: attachment; filename="'.basename($alias->path).'"');
-		readfile($alias->path);
-	}
-	exit;
-}
+require_once 'tpl.header.php';
 
 ?>
-<html>
-
-<head>
-<title>Aliases<?php echo logincheck() ? ' ('.$g_objUser->username.')' : ''; ?></title>
-<link rel="stylesheet" href="base.css" />
-</head>
-
-<body>
-
-<?php include('inc.logincheckheader.php'); ?>
-
 <table border="1" cellpadding="4" cellspacing="2">
 <tr>
 	<th></th>
@@ -52,7 +33,7 @@ else if ( logincheck() && isset($_GET['download']) ) {
 	<th>Readable?</th>
 	<th>Size</th>
 	<th>Writable?</th>
-	<th colspan="2"></th>
+	<th></th>
 </tr>
 <?php
 
@@ -80,10 +61,10 @@ foreach ( $g_arrAliases AS $a ) {
 
 	echo '<tr class="' . $zebra . '">';
 	echo '<td><a href="database.php?db=' . urlencode($a['alias']) . '">open</a></td>';
-	echo '<td><a href="?edit=' . urlencode($a['alias']) . '">' . $a['alias'] . '</a></td>';
+	echo '<td><a href="?edit=' . urlencode($a['alias']) . '">' . html($a['alias']) . '</a></td>';
 	echo '<td align="center">' . ( $a['public'] ? 'Y' : 'N' ) . '</td>';
-	echo '<td>' . $a['path'] . '</td>';
-	echo '<td>' . $a['description'] . '</td>';
+	echo '<td>' . html($a['path']) . '</td>';
+	echo '<td>' . html($a['description']) . '</td>';
 	echo '<td align="center">' . $version . '</td>';
 	echo '<td align="center">' . ( is_readable($a['path']) ? 'Y' : 'N' ) . '</td>';
 	echo '<td align="right">' . ( is_readable($a['path']) ? $size : '-' ) . '</td>';
@@ -91,7 +72,6 @@ foreach ( $g_arrAliases AS $a ) {
 	if ( isAdmin() ) {
 		echo '<td align="center"><a href="?delete=' . urlencode($a['alias']) . '">del</a></td>';
 	}
-	echo '<td align="center"><a href="?download=' . urlencode($a['alias']) . '">download</a></td>';
 	echo '</tr>'."\n";
 
 	$n++;
@@ -99,7 +79,6 @@ foreach ( $g_arrAliases AS $a ) {
 echo '</table>'."\n";
 
 if ( logincheck() && $g_objUser->isAdmin() ) {
-
 	echo '<br />'."\n";
 
 	$arrAlias = null;
@@ -123,12 +102,4 @@ if ( logincheck() && $g_objUser->isAdmin() ) {
 	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
 	echo '</table>';
 	echo '</form>'."\n";
-
 }
-
-?>
-</body>
-
-</html>
-
-
