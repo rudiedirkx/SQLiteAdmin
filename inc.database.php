@@ -12,4 +12,10 @@ if ( !$db->connected() ) {
 	exit("Can't connect: " . html($db->error));
 }
 
+// set encoding
+$db->query('PRAGMA encoding="UTF-8"');
+// screw ACID, go SPEED!
+$db->query('PRAGMA synchronous=OFF');
+$db->query('PRAGMA journal_mode=OFF');
+
 $g_objUser->loadAlias($objDb->alias);
