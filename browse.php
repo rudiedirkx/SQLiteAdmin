@@ -101,7 +101,7 @@ require_once 'tpl.table.php';
 		<input type="hidden" name="flip" value="<?= (int)$flip ?>" />
 		<input type="hidden" name="db" value="<?= html($_db) ?>" />
 		<input type="hidden" name="tbl" value="<?= html($_tbl) ?>" />
-		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%" rows="4"><?= html($szSql) ?></textarea>
+		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%; padding-right: 4em" rows="4"><?= html($szSql) ?></textarea>
 	</form>
 
 	<form class="favorite" method="post" action="favorites.php?db=<?= html($_db) ?>&tbl=<?= html($_tbl) ?>">
