@@ -34,8 +34,8 @@ $tables = $db->getTables();
 			$rows = $db->count($table);
 			if ($rows !== false): ?>
 				<tr>
-					<th align="left"><?= $table ?></th>
-					<td><a href="browse.php<?= QS ?>&tbl=<?= $table ?>"><?= bigNumber($db->count($table)) ?> rows</a></td>
+					<th nowrap align="left"><?= $table ?></th>
+					<td nowrap><a href="browse.php<?= QS ?>&tbl=<?= $table ?>"><?= bigNumber($db->count($table)) ?> rows</a></td>
 					<td colspan="3"></td>
 				</tr>
 			<? endif ?>
@@ -44,8 +44,8 @@ $tables = $db->getTables();
 			$type = $t['type'] != 'table' ? ' (' . strtoupper($t['type']) . ')' : '';
 			?>
 			<tr>
-				<th align="left"><?= $t['tbl_name'] . $type ?></th>
-				<td><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= bigNumber($db->count('"' . $t['tbl_name'] . '"')) ?> rows</a></td>
+				<th nowrap align="left"><?= $t['tbl_name'] . $type ?></th>
+				<td nowrap><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= bigNumber($db->count('"' . $t['tbl_name'] . '"')) ?> rows</a></td>
 				<td><a href="structure.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">structure</a></td>
 				<td><a href="insert.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">insert</a></td>
 				<td><a href="<?= QS ?>&recreate=<?= $t['tbl_name'] ?>">recreate</a></td>

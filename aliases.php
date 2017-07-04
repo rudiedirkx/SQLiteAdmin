@@ -40,7 +40,8 @@ require_once 'tpl.header.php';
 $n = 0;
 foreach ( $g_arrAliases AS $a ) {
 	$version = '-';
-	if ( file_exists($a['path']) && 0 < filesize($a['path']) ) {
+	$filesize = file_exists($a['path']) ? filesize($a['path']) : -1;
+	if ( $filesize > 0 ) {
 		$version = '?';
 		$fp = fopen($a['path'], 'r');
 		$bytes = strtolower(fread($fp, 40));
@@ -53,8 +54,8 @@ foreach ( $g_arrAliases AS $a ) {
 		}
 	}
 
-	$kb = filesize($a['path']) / 1024;
-	$size =  $kb > 1500 ? round($kb / 1024, 1) . ' <b>MB</b>' : round($kb) . ' kB';
+	$kb = $filesize / 1024;
+	$size =  $kb > 1500 ? number_format($kb / 1024, 1) . ' <b>MB</b>' : number_format($kb) . ' kB';
 
 	$odd = !($n % 2);
 	$zebra = $odd ? 'odd' : 'even';
