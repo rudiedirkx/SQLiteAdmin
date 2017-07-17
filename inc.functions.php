@@ -1,5 +1,11 @@
 <?php
 
+function format_size($bytes) {
+	$kb = $bytes / 1000;
+	$size =  $kb > 999 ? number_format($kb / 1000, 1) . ' <b>MB</b>' : number_format($kb) . ' kB';
+	return $size;
+}
+
 function csv_escape( $val ) {
 	return str_replace('"', '""', $val);
 }

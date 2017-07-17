@@ -30,9 +30,9 @@ require_once 'tpl.header.php';
 	<th>Path</th>
 	<th>Description</th>
 	<th>Version</th>
-	<th>Readable?</th>
+	<th>Read</th>
 	<th>Size</th>
-	<th>Writable?</th>
+	<th>Write</th>
 	<th></th>
 </tr>
 <?php
@@ -54,8 +54,7 @@ foreach ( $g_arrAliases AS $a ) {
 		}
 	}
 
-	$kb = $filesize / 1024;
-	$size =  $kb > 1500 ? number_format($kb / 1024, 1) . ' <b>MB</b>' : number_format($kb) . ' kB';
+	$size = format_size($filesize);
 
 	$odd = !($n % 2);
 	$zebra = $odd ? 'odd' : 'even';
