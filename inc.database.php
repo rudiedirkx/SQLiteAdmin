@@ -14,8 +14,15 @@ if ( !$db->connected() ) {
 
 // set encoding
 $db->query('PRAGMA encoding="UTF-8"');
+
 // screw ACID, go SPEED!
 $db->query('PRAGMA synchronous=OFF');
 $db->query('PRAGMA journal_mode=OFF');
+
+// in case it uses foreign key constraints
+try {
+	$db->query('PRAGMA foreign_keys = ON');
+}
+catch ( Exception $ex ) {}
 
 $g_objUser->loadAlias($objDb->alias);

@@ -56,13 +56,45 @@ $tables = $db->getTables();
 
 <br />
 
+<fieldset>
+	<legend>Export</legend>
+	<a href="<?= QS ?>&export=1">Export all</a>
+</fieldset>
+
+<br />
+
 <?php
 
 $sql = trim(@$_POST['sql']);
 
-if ( !$sql && @$_GET['recreate'] ) {
+// EXPORT ALL TABLES
+if ( !$sql && @$_GET['export'] ) {
+	foreach ( $tables as $table ) {
+		$rows = $db->select($table['tbl_name']);
+
+		$columns = array_map(function($col) {
+			return '"' . $col . '"';
+		}, array_keys($rows[0]));
+		$inserts = [];
+		foreach ( array_chunk($rows, 10) as $chunk ) {
+			$inserts[] = 'INSERT INTO "' . $table['tbl_name'] . '" (' . implode(', ', $columns) . ") VALUES\n(" . implode("),\n(", array_map(function($row) use ($db) {
+				return implode(', ', array_map(function($value) use ($db) {
+					return $value === null ? 'NULL' : "'" . $db->escape($value) . "'";
+				}, $row));
+			}, $chunk)) . ');';
+		}
+
+		$sql .= implode("\n\n\n\n", $inserts) . "\n\n\n\n\n\n";
+	}
+}
+
+// RECREATE 1 TABLE
+elseif ( !$sql && @$_GET['recreate'] ) {
 	$_tbl = preg_replace('#[^\w\d ]#', '', $_GET['recreate']);
 	$objTable = $db->structure($_tbl);
+
+	// @todo Keep PRIMARY KEY
+
 	if ( $objTable ) {
 		$_columns = array();
 		foreach ( (array)$objTable as $_col => $_typ) {
