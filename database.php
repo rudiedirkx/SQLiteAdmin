@@ -98,15 +98,15 @@ elseif ( !$sql && @$_GET['recreate'] ) {
 	if ( $objTable ) {
 		$_columns = array();
 		foreach ( (array)$objTable as $_col => $_typ) {
-			$_columns[$_col] = $_col . ' ' . strtoupper($_typ ?: 'TEXT');
+			$_columns[$_col] = '"' . $_col . '" ' . strtoupper($_typ ?: 'TEXT');
 		}
 
 		$sqls = array();
 		$sqls[] = 'CREATE TEMPORARY TABLE "tmp__' . $_tbl . '" (' . implode(', ', $_columns) . ');';
-		$sqls[] = 'INSERT INTO "tmp__' . $_tbl . '" SELECT ' . implode(', ', array_keys($_columns)) . ' FROM "' . $_tbl . '";';
+		$sqls[] = 'INSERT INTO "tmp__' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "' . $_tbl . '";';
 		$sqls[] = 'DROP TABLE "' . $_tbl . '";';
 		$sqls[] = 'CREATE TABLE "' . $_tbl . '" (' . implode(', ', $_columns) . ');';
-		$sqls[] = 'INSERT INTO "' . $_tbl . '" SELECT ' . implode(', ', array_keys($_columns)) . ' FROM "tmp__' . $_tbl . '";';
+		$sqls[] = 'INSERT INTO "' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "tmp__' . $_tbl . '";';
 
 		$sql = implode("\n\n", $sqls);
 	}
