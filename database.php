@@ -93,19 +93,19 @@ elseif ( !$sql && @$_GET['recreate'] ) {
 	$_tbl = preg_replace('#[^\w\d ]#', '', $_GET['recreate']);
 	$objTable = $db->structure($_tbl);
 
-	// @todo Keep PRIMARY KEY
-
 	if ( $objTable ) {
 		$_columns = array();
 		foreach ( (array)$objTable as $_col => $_typ) {
 			$_columns[$_col] = '"' . $_col . '" ' . strtoupper($_typ ?: 'TEXT');
 		}
 
+		$_tables = $db->getTables();
+
 		$sqls = array();
 		$sqls[] = 'CREATE TEMPORARY TABLE "tmp__' . $_tbl . '" (' . implode(', ', $_columns) . ');';
 		$sqls[] = 'INSERT INTO "tmp__' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "' . $_tbl . '";';
 		$sqls[] = 'DROP TABLE "' . $_tbl . '";';
-		$sqls[] = 'CREATE TABLE "' . $_tbl . '" (' . implode(', ', $_columns) . ');';
+		$sqls[] = rtrim(trim($_tables[$_tbl]['sql']), ';') . ';';
 		$sqls[] = 'INSERT INTO "' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "tmp__' . $_tbl . '";';
 
 		$sql = implode("\n\n", $sqls);
