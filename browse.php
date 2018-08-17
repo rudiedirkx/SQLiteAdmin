@@ -101,7 +101,7 @@ require_once 'tpl.table.php';
 		<input type="hidden" name="flip" value="<?= (int)$flip ?>" />
 		<input type="hidden" name="db" value="<?= html($_db) ?>" />
 		<input type="hidden" name="tbl" value="<?= html($_tbl) ?>" />
-		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%; padding-right: 4em" rows="4"><?= html($szSql) ?></textarea>
+		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%; padding-right: 4em; tab-size: 4" rows="4"><?= html($szSql) ?></textarea>
 	</form>
 
 	<form class="favorite" method="post" action="favorites.php?db=<?= html($_db) ?>&tbl=<?= html($_tbl) ?>">
@@ -110,6 +110,7 @@ require_once 'tpl.table.php';
 	</form>
 </div>
 
+<script src="auto-indent.js"></script>
 <script>
 var rowser = function() {
 	this._rows || (this._rows = this.rows);
@@ -120,6 +121,7 @@ var rowser = function() {
 	this.rows++;
 };
 var sqlq = document.getElementById('sqlq');
+doAutoIndent(sqlq);
 sqlq.addEventListener('keydown', function(e) {
 	rowser.call(this);
 	if (e.keyCode == 13 && e.ctrlKey) {
