@@ -23,6 +23,10 @@ class db_sqlite extends db_generic {
 		return preg_match($pattern, $subject);
 	}
 
+	static function fn_from_unixtime( $utc ) {
+		return date('Y-m-d H:i:s', $utc);
+	}
+
 	static function fn_concat($a, $b) {
 		return implode(func_get_args());
 	}
