@@ -144,12 +144,21 @@ class db_sqlite extends db_generic {
 	}
 
 	public function structure($tbl) {
-		$info = $this->fetch('PRAGMA table_info(`'.$tbl.'`)');
+		$info = $this->fetch('PRAGMA table_info(' . $this->escapeAndQuoteStructure($tbl) . ')');
 		$structure = array();
 		foreach ( $info AS $col ) {
 			$structure[$col['name']] = strtoupper($col['type']);
 		}
-		return (object)$structure;
+		return $structure;
+	}
+
+	public function references($tbl) {
+		$refs = $this->fetch('PRAGMA foreign_key_list(' . $this->escapeAndQuoteStructure($tbl) . ')');
+		$structure = array();
+		foreach ( $refs AS $ref ) {
+			$structure[$ref['from']] = [$ref['table'], $ref['to']];
+		}
+		return $structure;
 	}
 
 	public function __construct( $f_szDatabase, $f_szUser = null, $f_szPass = null, $f_szDb = null ) {

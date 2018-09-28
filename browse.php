@@ -22,6 +22,28 @@ if ( $arrContents ) {
 		return $export ? $value : array('th' => $th, 'data' => $value);
 	};
 
+	$refs = $db->references($_tbl);
+
+	$cropper = function($value) use ($nocrop) {
+		return $nocrop || mb_strlen($value) <= 80 ? $value : mb_substr($value, 0, 78) . '...';
+	};
+
+	$encoder = function($value) use ($export) {
+		return $export ? (string) $value : ( $value === null ? '<i>NIL</i>' : html($value) );
+	};
+
+	$fkLink = function($col, $val) use ($db, $_db, $refs, $encoder, $cropper) {
+		if ( $val !== null && isset($refs[$col]) ) {
+			$query = http_build_query([
+				'db' => $_db,
+				'tbl' => $refs[$col][0],
+				'sql' => 'SELECT * FROM ' . $db->escapeAndQuoteStructure($refs[$col][0]) . ' WHERE ' . $db->escapeAndQuoteStructure($refs[$col][1]) . ' = ' . $db->escapeAndQuote($val),
+			]);
+			return '<a href="?' . html($query) . '">' . $encoder($val) . '</a>';
+		}
+		return $encoder($cropper($val));
+	};
+
 	$data = array();
 	if ($flip) {
 		foreach ($arrContents as $i => $row) {
@@ -35,7 +57,7 @@ if ( $arrContents ) {
 				// One row per column
 				$data[] = array(
 					$cell($name, true),
-					$cell($value),
+					$cell($fkLink($name, $value)),
 				);
 			}
 		}
@@ -50,7 +72,7 @@ if ( $arrContents ) {
 				}
 
 				// Column
-				$subdata[] = $cell($value, false);
+				$subdata[] = $cell($fkLink($name, $value), false);
 			}
 			$data[] = $subdata;
 		}
@@ -145,14 +167,6 @@ if ( $arrContents ) {
 	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a> | ';
 	$header .= '<a href="?' . http_build_query(array('export' => 1) + $_GET) . '">export</a>';
 
-	$cropper = function($value) use ($nocrop) {
-		return $nocrop || mb_strlen($value) <= 80 ? $value : mb_substr($value, 0, 78) . '...';
-	};
-
-	$encoder = function($value) use ($export) {
-		return $export ? (string) $value : ( $value === null ? '<i>NIL</i>' : html($value) );
-	};
-
 	echo '<table border="1" cellpadding="6" cellspacing="0">' . "\n";
 	echo '<thead>' . "\n";
 	echo '<tr><th colspan="' . count($data[0]) . '">' . $header . '</th></tr>' . "\n";
@@ -162,7 +176,7 @@ if ( $arrContents ) {
 		echo '<tr>';
 		foreach ($row as $j => $cell) {
 			$tag = $cell['th'] ? 'th' : 'td';
-			echo '<' . $tag . '>' . $encoder($cropper($cell['data'])) . '</' . $tag . '>';
+			echo '<' . $tag . '>' . $cell['data'] . '</' . $tag . '>';
 		}
 		echo '</tr>';
 	}
