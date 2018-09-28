@@ -58,7 +58,8 @@ $tables = $db->getTables();
 
 <fieldset>
 	<legend>Export</legend>
-	<a href="<?= QS ?>&export=1">Export all</a>
+	<a href="<?= QS ?>&exportdata=1">Export data</a> |
+	<a href="<?= QS ?>&exportstructure=1">Export structure</a>
 </fieldset>
 
 <br />
@@ -67,8 +68,8 @@ $tables = $db->getTables();
 
 $sql = trim(@$_POST['sql']);
 
-// EXPORT ALL TABLES
-if ( !$sql && @$_GET['export'] ) {
+// EXPORT ALL DATA
+if ( !$sql && @$_GET['exportdata'] ) {
 	foreach ( $tables as $table ) {
 		$rows = $db->select($table['tbl_name']);
 
@@ -85,6 +86,13 @@ if ( !$sql && @$_GET['export'] ) {
 		}
 
 		$sql .= implode("\n\n\n\n", $inserts) . "\n\n\n\n\n\n";
+	}
+}
+
+// EXPORT ALL STRUCTURE
+elseif ( !$sql && @$_GET['exportstructure'] ) {
+	foreach ( $tables as $table ) {
+		$sql .= rtrim($table['sql'], ';') . ";\n\n\n\n";
 	}
 }
 
