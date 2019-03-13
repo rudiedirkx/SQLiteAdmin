@@ -7,6 +7,13 @@ if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['pat
 		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
 	}
 	else {
+		if ($_POST['path'] === '' && !empty($_FILES['upload']['tmp_name'])) {
+			$ext = preg_match('#\.sqlite3$#', $_FILES['upload']['name']) ? 'sqlite3' : 'sqlite';
+			$path = __DIR__ . '/dbs/' . rand() . '.' . $ext;
+			move_uploaded_file($_FILES['upload']['tmp_name'], $path);
+			$_POST['path'] = $path;
+		}
+
 		$master->insert('aliases', $_POST);
 	}
 	header('Location: aliases.php');
@@ -97,7 +104,7 @@ if ( logincheck() && $g_objUser->isAdmin() ) {
 	echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
 	echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
 	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? html($arrAlias['alias']) : '' ).'" size="60" /></td></tr>'."\n";
-	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? html($arrAlias['path']) : '' ).'" size="60" /></td></tr>'."\n";
+	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? html($arrAlias['path']) : '' ).'" size="60" /> / <input type="file" name="upload" /></td></tr>'."\n";
 	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? html($arrAlias['description']) : '' ).'" size="60" /></td></tr>'."\n";
 	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
 	echo '</table>';
