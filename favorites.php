@@ -56,7 +56,7 @@ td.query {
 			<td class="query"><?= html($fav['query']) ?></td>
 			<td><?= date('Y-m-d H:i', $fav['created_on']) ?></td>
 			<td>
-				<form method="post">
+				<form method="post" onsubmit="return confirm('Are you sure you want to DELETE this fav?')">
 					<input type="hidden" name="del" value="<?= $fav['id'] ?>" />
 					<button>del</button>
 				</form>
