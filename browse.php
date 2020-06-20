@@ -115,6 +115,12 @@ require_once 'tpl.table.php';
 	color: #ddd;
 	font-style: italic;
 }
+
+@media (min-width: 1000px) {
+	.hide-on-desktop {
+		display: none;
+	}
+}
 </style>
 
 <div class="form">
@@ -124,6 +130,7 @@ require_once 'tpl.table.php';
 		<input type="hidden" name="db" value="<?= html($_db) ?>" />
 		<input type="hidden" name="tbl" value="<?= html($_tbl) ?>" />
 		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%; padding-right: 4em; tab-size: 4" rows="4"><?= html($szSql) ?></textarea>
+		<button class="hide-on-desktop">Run!</button>
 	</form>
 
 	<form class="favorite" method="post" action="favorites.php?db=<?= html($_db) ?>&tbl=<?= html($_tbl) ?>">
