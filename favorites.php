@@ -45,8 +45,15 @@ td.query {
 	white-space: pre-wrap;
 	font-family: monospace;
 }
+body.query-pre td.query {
+	white-space: pre;
+}
 </style>
 
+<label>
+	<input type="checkbox" onclick="document.body.classList.toggle('query-pre', this.checked)" />
+	Real <code>pre</code> SQL
+</label>
 <table border="1" cellspacing="0">
 	<?foreach ($favorites as $fav):?>
 		<tr valign="top">
