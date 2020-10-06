@@ -10,6 +10,8 @@ require_once 'tpl.database.php';
 
 $tables = $db->getTables();
 
+$recreatableTables = array_diff(array_keys($tables), ['_version']);
+
 ?>
 <style>
 .result-meta {
@@ -48,7 +50,7 @@ $tables = $db->getTables();
 				<td nowrap><a href="browse.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>"><?= bigNumber($db->count('"' . $t['tbl_name'] . '"')) ?> rows</a></td>
 				<td><a href="structure.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">structure</a></td>
 				<td><a href="insert.php<?= QS ?>&tbl=<?= $t['tbl_name'] ?>">insert</a></td>
-				<td><a href="<?= QS ?>&recreate=<?= $t['tbl_name'] ?>">recreate</a></td>
+				<td><a href="<?= QS ?>&recreate[]=<?= $t['tbl_name'] ?>">recreate</a></td>
 			</tr>
 		<?endforeach?>
 	</table>
@@ -59,7 +61,8 @@ $tables = $db->getTables();
 <fieldset>
 	<legend>Export</legend>
 	<a href="<?= QS ?>&exportdata=1">Export data</a> |
-	<a href="<?= QS ?>&exportstructure=1">Export structure</a>
+	<a href="<?= QS ?>&exportstructure=1">Export structure</a> |
+	<a href="<?= QS ?>&recreate[]=<?= implode('&recreate[]=', $recreatableTables) ?>">Recreate all</a>
 </fieldset>
 
 <br />
@@ -96,28 +99,37 @@ elseif ( !$sql && @$_GET['exportstructure'] ) {
 	}
 }
 
-// RECREATE 1 TABLE
+// RECREATE SOME TABLES
 elseif ( !$sql && @$_GET['recreate'] ) {
-	$_tbl = preg_replace('#[^\w\d ]#', '', $_GET['recreate']);
-	$objTable = $db->structure($_tbl);
-
-	if ( $objTable ) {
+	$tableStructures = array_map(function($table) use ($db) {
+		return $db->structure($table['name']);
+	}, array_intersect_key($tables, array_flip($_GET['recreate'])));
+	$tableColumns = array_map(function($columns) {
 		$_columns = array();
-		foreach ( (array)$objTable as $_col => $_typ) {
+		foreach ( $columns as $_col => $_typ ) {
 			$_columns[$_col] = '"' . $_col . '" ' . strtoupper($_typ ?: 'TEXT');
 		}
+		return $_columns;
+	}, $tableStructures);
 
-		$_tables = $db->getTables();
-
-		$sqls = array();
+	$sqls = array();
+	foreach ( $tableColumns as $_tbl => $_columns ) {
 		$sqls[] = 'CREATE TEMPORARY TABLE "tmp__' . $_tbl . '" (' . implode(', ', $_columns) . ');';
-		$sqls[] = 'INSERT INTO "tmp__' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "' . $_tbl . '";';
-		$sqls[] = 'DROP TABLE "' . $_tbl . '";';
-		$sqls[] = rtrim(trim($_tables[$_tbl]['sql']), ';') . ';';
-		$sqls[] = 'INSERT INTO "' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "tmp__' . $_tbl . '";';
-
-		$sql = implode("\n\n", $sqls);
 	}
+	foreach ( $tableColumns as $_tbl => $_columns ) {
+		$sqls[] = 'INSERT INTO "tmp__' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "' . $_tbl . '";';
+	}
+	foreach ( $tableColumns as $_tbl => $_columns ) {
+		$sqls[] = 'DROP TABLE "' . $_tbl . '";';
+	}
+	foreach ( $tableColumns as $_tbl => $_columns ) {
+		$sqls[] = rtrim(trim($tables[$_tbl]['sql']), ';') . ';';
+	}
+	foreach ( $tableColumns as $_tbl => $_columns ) {
+		$sqls[] = 'INSERT INTO "' . $_tbl . '" SELECT "' . implode('", "', array_keys($_columns)) . '" FROM "tmp__' . $_tbl . '";';
+	}
+
+	$sql = implode("\n\n", $sqls);
 }
 
 echo '<form method="post" action="?db=' . $_GET['db'] . '&query=1"><fieldset><legend>Query</legend>'."\n";
