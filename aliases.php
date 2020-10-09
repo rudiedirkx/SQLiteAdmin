@@ -2,9 +2,9 @@
 
 require_once 'inc.config.php';
 
-if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
+if ( isset($_POST['alias'], $_POST['path'], $_POST['description']) ) {
 	if ( isset($_GET['edit']) ) {
-		$master->update('aliases', $_POST, 'alias = \''.$master->escape($_GET['edit']).'\'');
+		$master->update('aliases', $_POST, ['alias' => $_GET['edit']]);
 	}
 	else {
 		if ($_POST['path'] === '' && !empty($_FILES['upload']['tmp_name'])) {
@@ -16,12 +16,14 @@ if ( logincheck() && $g_objUser->isAdmin() && isset($_POST['alias'], $_POST['pat
 
 		$master->insert('aliases', $_POST);
 	}
+
 	header('Location: aliases.php');
 	exit;
 }
 
-else if ( logincheck() && $g_objUser->isAdmin() && isset($_GET['delete']) ) {
-	$master->delete('aliases', 'alias = \''.$master->escape($_GET['delete']).'\'');
+if ( isset($_GET['delete']) && tokencheck() ) {
+	$master->delete('aliases', ['alias' => $_GET['delete']]);
+
 	header('Location: aliases.php');
 	exit;
 }
@@ -76,37 +78,33 @@ foreach ( $g_arrAliases AS $a ) {
 	echo '<td align="center">' . ( is_readable($a['path']) ? 'Y' : 'N' ) . '</td>';
 	echo '<td align="right">' . ( is_readable($a['path']) ? $size : '-' ) . '</td>';
 	echo '<td align="center">' . ( is_writable($a['path']) ? 'Y' : 'N' ) . '</td>';
-	if ( isAdmin() ) {
-		echo '<td align="center"><a href="?delete=' . urlencode($a['alias']) . '">del</a></td>';
-	}
+	echo '<td align="center"><a href="?delete=' . urlencode($a['alias']) . '&_token=' . tokenmake() . '">del</a></td>';
 	echo '</tr>'."\n";
 
 	$n++;
 }
 echo '</table>'."\n";
 
-if ( logincheck() && $g_objUser->isAdmin() ) {
-	echo '<br />'."\n";
+echo '<br />'."\n";
 
-	$arrAlias = null;
-	if ( !empty($_GET['edit']) ) {
-		$arrAlias = $master->select('aliases', 'alias = \''.$master->escape($_GET['edit']).'\' LIMIT 2');
-		if ( 1 == count($arrAlias) ) {
-			$arrAlias = $arrAlias[0];
-		}
-		else {
-			unset($_GET['edit'], $arrAlias);
-			$arrAlias = null;
-		}
+$arrAlias = null;
+if ( !empty($_GET['edit']) ) {
+	$arrAlias = $master->select('aliases', 'alias = \''.$master->escape($_GET['edit']).'\' LIMIT 2');
+	if ( 1 == count($arrAlias) ) {
+		$arrAlias = $arrAlias[0];
 	}
-
-	echo '<form enctype="multipart/form-data" method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'">';
-	echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
-	echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
-	echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? html($arrAlias['alias']) : '' ).'" size="60" /></td></tr>'."\n";
-	echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? html($arrAlias['path']) : '' ).'" size="60" /> / <input type="file" name="upload" /></td></tr>'."\n";
-	echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? html($arrAlias['description']) : '' ).'" size="60" /></td></tr>'."\n";
-	echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
-	echo '</table>';
-	echo '</form>'."\n";
+	else {
+		unset($_GET['edit'], $arrAlias);
+		$arrAlias = null;
+	}
 }
+
+echo '<form enctype="multipart/form-data" method="post" action="aliases.php'.( !empty($_GET['edit']) ? '?edit='.$_GET['edit'] : '' ).'">';
+echo '<table border="1" cellpadding="4" cellspacing="2">'."\n";
+echo '<tr><th colspan="2">'.( !empty($_GET['edit']) ? 'Edit' : 'New' ).' alias</th></tr>'."\n";
+echo '<tr><th>Alias</th><td><input type="text" name="alias" value="'.( $arrAlias ? html($arrAlias['alias']) : '' ).'" size="60" ' . ( $arrAlias ? 'autofocus' : '' ) . ' /></td></tr>'."\n";
+echo '<tr><th>Path</th><td><input type="text" name="path" value="'.( $arrAlias ? html($arrAlias['path']) : '' ).'" size="60" /> / <input type="file" name="upload" /></td></tr>'."\n";
+echo '<tr><th>Description</th><td><input type="text" name="description" value="'.( $arrAlias ? html($arrAlias['description']) : '' ).'" size="60" /></td></tr>'."\n";
+echo '<tr><th colspan="2"><input type="submit" value="Save" /></th></tr>'."\n";
+echo '</table>';
+echo '</form>'."\n";

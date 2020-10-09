@@ -1,13 +1,14 @@
 <?php
 
-// Select db meta record
-$objDb = $g_objUser->getAliasByAlias($_db);
-if ( !$objDb ) {
+// Alias record
+$a = $master->select('aliases', ['alias' => $_db]);
+$g_alias = count($a) ? (object) $a[0] : null;
+if ( !$g_alias ) {
 	return missingParams(array('db'));
 }
 
 // Actual db connection
-$db = db_sqlite::open($objDb->path);
+$db = db_sqlite::open($g_alias->path);
 if ( !$db->connected() ) {
 	exit("Can't connect: " . html($db->error));
 }
@@ -24,5 +25,3 @@ try {
 	$db->query('PRAGMA foreign_keys = ON');
 }
 catch ( Exception $ex ) {}
-
-$g_objUser->loadAlias($objDb->alias);

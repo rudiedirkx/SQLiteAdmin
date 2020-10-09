@@ -5,7 +5,7 @@ require_once 'inc.config.php';
 list($_db) = requireParams('db');
 require_once 'inc.database.php';
 
-$conditions = array('user_id' => $g_objUser->id, 'alias_id' => $g_objUser->alias->id);
+$conditions = array('alias_id' => $g_alias->id);
 
 // CREATE
 if ( isset($_POST['sql'], $_GET['tbl']) ) {

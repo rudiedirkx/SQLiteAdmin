@@ -109,7 +109,7 @@ abstract class DB_Generic {
 	}
 
 	public function stringifyConditions( $conditions, $operator = 'AND' ) {
-		if ( is_string($conditions) ) {
+		if ( !is_array($conditions) ) {
 			return $conditions;
 		}
 
@@ -181,22 +181,35 @@ abstract class DB_Generic {
 		return $this->query($szSqlQuery);
 	}
 
-	public function update($tbl, $update, $where = '') {
-		if ( !is_string($update) ) {
-			$u = '';
-			foreach ( (array)$update AS $k => $v ) {
-				$u .= ',' . $k . '=' . $this->escapeAndQuote($v);
-			}
-			$update = substr($u, 1);
-		}
+	public function update($tbl, $update, $where = null) {
+		$update = $this->stringifyUpdates($update);
+		$where = $this->stringifyConditions($where);
+
 		$query = 'UPDATE '.$tbl.' SET '.$update.( $where ? ' WHERE '.$where : '' ).';';
 		return $this->query($query);
 	}
 
 	public function delete($tbl, $where) {
+		$where = $this->stringifyConditions($where);
 		return $this->query('DELETE FROM '.$tbl.' WHERE '.$where.';');
 	}
 
+	public function stringifyUpdates( $updates ) {
+		if ( !is_array($updates) ) return $updates;
+
+		$u = '';
+		foreach ( (array)$updates AS $k => $v ) {
+			if ( is_int($k) ) {
+				$u .= ', ' . $v;
+			}
+			else {
+				$u .= ', ' . $k . ' = ' . $this->escapeAndQuote($v);
+			}
+		}
+		$updates = substr($u, 1);
+
+		return $updates;
+	}
 
 } // END Class db_generic
 
