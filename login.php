@@ -28,6 +28,7 @@ else if ( isset($_POST['username'], $_POST['password'], $_POST['goto']) ) {
 }
 
 ?>
+<title>SQLite Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <form method="post" action>
 	<input type="hidden" name="goto" value="<?php echo isset($_GET['goto']) ? $_GET['goto'] : ''; ?>" />
