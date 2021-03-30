@@ -35,12 +35,11 @@ require_once 'tpl.header.php';
 <tr>
 	<th></th>
 	<th>Alias</th>
-	<th>Public?</th>
 	<th>Path</th>
-	<th>Description</th>
-	<th>Version</th>
-	<th>Read</th>
+	<th>V</th>
 	<th>Size</th>
+	<th>Modified</th>
+	<th>Read</th>
 	<th>Write</th>
 	<th></th>
 </tr>
@@ -71,12 +70,11 @@ foreach ( $g_arrAliases AS $a ) {
 	echo '<tr class="' . $zebra . '">';
 	echo '<td><a href="database.php?db=' . urlencode($a['alias']) . '">open</a></td>';
 	echo '<td><a href="?edit=' . urlencode($a['alias']) . '">' . html($a['alias']) . '</a></td>';
-	echo '<td align="center">' . ( $a['public'] ? 'Y' : 'N' ) . '</td>';
 	echo '<td>' . html($a['path']) . '</td>';
-	echo '<td>' . html($a['description']) . '</td>';
 	echo '<td align="center">' . $version . '</td>';
-	echo '<td align="center">' . ( is_readable($a['path']) ? 'Y' : 'N' ) . '</td>';
 	echo '<td align="right">' . ( is_readable($a['path']) ? $size : '-' ) . '</td>';
+	echo '<td>' . ( is_readable($a['path']) ? date('Y-m-d', filemtime($a['path'])) : '-' ) . '</td>';
+	echo '<td align="center">' . ( is_readable($a['path']) ? 'Y' : 'N' ) . '</td>';
 	echo '<td align="center">' . ( is_writable($a['path']) ? 'Y' : 'N' ) . '</td>';
 	echo '<td align="center"><a href="?delete=' . urlencode($a['alias']) . '&_token=' . tokenmake() . '">del</a></td>';
 	echo '</tr>'."\n";
