@@ -195,7 +195,7 @@ else {
 		echo '<pre style="padding: 10px; border: solid 2px red; background-color: #eee">' . $db->error . '</pre>';
 	}
 	else {
-		echo '<p>no records returned</p>';
+		echo '<p>no records returned (' . $db->affected_rows() . ' affected)</p>';
 	}
 }
 
