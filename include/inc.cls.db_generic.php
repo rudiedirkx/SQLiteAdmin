@@ -6,6 +6,8 @@ abstract class DB_Generic {
 	public $error = '';
 	public $errno = 0;
 	public $num_queries = 0;
+	public $last_query = '';
+	public $last_query_time = 0;
 
 	public function __construct( $f_szHost, $f_szUser = null, $f_szPass = null, $f_szDb = null ) {}
 	public function saveError() {}

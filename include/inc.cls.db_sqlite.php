@@ -57,12 +57,6 @@ class db_sqlite extends db_generic {
 		return $db;
 	}
 
-	protected $dbCon = null;
-	public $error = '';
-	public $errno = 0;
-	public $num_queries = 0;
-	public $last_query = '';
-
 	public function toQueryFieldList($list) {
 		$r = array();
 		foreach ( $list AS $c => $t ) {
@@ -204,7 +198,9 @@ class db_sqlite extends db_generic {
 	public function query( $f_szSqlQuery ) {
 		$this->num_queries++;
 		$this->last_query = $f_szSqlQuery;
+		$t = microtime(1);
 		$r = $this->dbCon->query($f_szSqlQuery) or $this->saveError();
+		$this->last_query_time = microtime(1) - $t;
 		$this->saveError();
 		return $r;
 	}

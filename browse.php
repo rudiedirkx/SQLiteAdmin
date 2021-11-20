@@ -166,10 +166,11 @@ rowser.call(sqlq);
 if ( $arrContents ) {
 	$szCountSql = $szSql;
 	$szCountSql = preg_replace('#(limit|offset)\s+\d+(?:\s*,\s*\d+)?#i', '', $szCountSql);
-	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . trim($szCountSql) . ')');
+	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . trim($szCountSql) . ') x');
 
 	$header = '';
 	$header .= count($arrContents) . ' / ' . $total . ' records | ';
+	$header .= number_format($db->last_query_time * 1000, 1) . ' ms | ';
 	$header .= '<a href="?' . http_build_query(array('nocrop' => (int)!$nocrop) + $_GET) . '">'.( $nocrop ? 'crop' : 'nocrop' ).'</a> | ';
 	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a> | ';
 	$header .= '<a href="?' . http_build_query(array('export' => 1) + $_GET) . '">export</a>';

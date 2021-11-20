@@ -4,12 +4,7 @@ require_once(dirname(__FILE__).'/inc.cls.db_sqlite.php');
 
 class db_sqlite3 extends db_sqlite {
 
-	protected $dbCon = null;
-	public $error = '';
-	public $errno = 0;
-	public $num_queries = 0;
 	public $m_iAffectedRows = 0;
-	public $last_query = '';
 
 	public function begin() {
 		return $this->dbCon->beginTransaction();
@@ -67,10 +62,13 @@ class db_sqlite3 extends db_sqlite {
 	public function query( $f_szSqlQuery ) {
 		$this->num_queries++;
 		$this->last_query = $f_szSqlQuery;
+		$t = microtime(1);
 		if ( false === ($r = $this->dbCon->query($f_szSqlQuery)) ) {
+			$this->last_query_time = microtime(1) - $t;
 			$this->saveError(true);
 			return false;
 		}
+		$this->last_query_time = microtime(1) - $t;
 		$this->saveError(false);
 		$this->m_iAffectedRows = $r->rowCount();
 		return $r;
