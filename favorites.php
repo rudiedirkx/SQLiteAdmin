@@ -48,6 +48,9 @@ td.query {
 body.query-pre td.query {
 	white-space: pre;
 }
+.query strong.table {
+	color: green;
+}
 </style>
 
 <label>
@@ -60,7 +63,9 @@ body.query-pre td.query {
 			<td>
 				<a href="browse.php?db=<?= $_db ?>&tbl=<?= $fav['tbl'] ?>&sql=<?= html(urlencode($fav['query'])) ?>">Exec</a>
 			</td>
-			<td class="query"><?= html($fav['query']) ?></td>
+			<td class="query"><?= preg_replace_callback("#(\s)\"?({$fav['tbl']})\"?(\s)#", function($m) {
+				return $m[1] . '<strong class="table">' . $m[2] . '</strong>' . $m[3];
+			}, html($fav['query'])) ?></td>
 			<td><?= date('Y-m-d H:i', $fav['created_on']) ?></td>
 			<td>
 				<form method="post" onsubmit="return confirm('Are you sure you want to DELETE this fav?')">
