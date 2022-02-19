@@ -13,10 +13,9 @@ $iStart = $iPage * $iLimit;
 $szSql = trim(@$_GET['sql'] ?: 'SELECT * FROM ' . $db->escapeAndQuoteStructure($_tbl) . ' WHERE 1 LIMIT ' . $iStart . ', ' . $iLimit);
 
 $nocrop = (int)!empty($_GET['nocrop']);
-$flip = (int)!empty($_GET['flip']);
 $export = (int)!empty($_GET['export']);
 
-$arrContents = $db->fetch($szSql);
+$arrContents = $db->fetch_columns($szSql);
 if ( $arrContents ) {
 	$cell = function($value, $th = false) use ($export) {
 		return $export ? $value : array('th' => $th, 'data' => $value);
@@ -45,37 +44,17 @@ if ( $arrContents ) {
 	};
 
 	$data = array();
-	if ($flip) {
-		foreach ($arrContents as $i => $row) {
-			// Row delimiter row
-			$data[] = array(
-				$cell('', true),
-				$cell('# ' . ($i+1), true),
-			);
-
-			foreach ($row as $name => $value) {
-				// One row per column
-				$data[] = array(
-					$cell($name, true),
-					$cell($fkLink($name, $value)),
-				);
+	foreach ($arrContents as $i => $row) {
+		$subdata = array();
+		foreach ($row as $j => $value) {
+			if ($i == 0) {
+				$subdata[] = $cell($value, true);
+			}
+			else {
+				$subdata[] = $cell($fkLink($arrContents[0][$j], $value), false);
 			}
 		}
-	}
-	else {
-		foreach ($arrContents as $i => $row) {
-			$subdata = array();
-			foreach ($row as $name => $value) {
-				// Header
-				if ( !isset($data[1]) ) {
-					$data[0][] = $cell($name, true);
-				}
-
-				// Column
-				$subdata[] = $cell($fkLink($name, $value), false);
-			}
-			$data[] = $subdata;
-		}
+		$data[] = $subdata;
 	}
 
 	if ( $export ) {
@@ -126,7 +105,6 @@ require_once 'tpl.table.php';
 <div class="form">
 	<form class="query" action>
 		<input type="hidden" name="nocrop" value="<?= (int)$nocrop ?>" />
-		<input type="hidden" name="flip" value="<?= (int)$flip ?>" />
 		<input type="hidden" name="db" value="<?= html($_db) ?>" />
 		<input type="hidden" name="tbl" value="<?= html($_tbl) ?>" />
 		<textarea tabindex="1" id="sqlq" name="sql" style="width: 100%; padding-right: 4em; tab-size: 4" rows="4"><?= html($szSql) ?></textarea>
@@ -169,10 +147,9 @@ if ( $arrContents ) {
 	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . trim($szCountSql) . ') x');
 
 	$header = '';
-	$header .= count($arrContents) . ' / ' . $total . ' records | ';
+	$header .= (count($arrContents) - 1) . ' / ' . $total . ' records | ';
 	$header .= number_format($db->last_query_time * 1000, 1) . ' ms | ';
 	$header .= '<a href="?' . http_build_query(array('nocrop' => (int)!$nocrop) + $_GET) . '">'.( $nocrop ? 'crop' : 'nocrop' ).'</a> | ';
-	$header .= '<a href="?' . http_build_query(array('flip' => (int)!$flip) + $_GET) . '">flip</a> | ';
 	$header .= '<a href="?' . http_build_query(array('export' => 1) + $_GET) . '">export</a>';
 
 	echo '<table border="1" cellpadding="6" cellspacing="0">' . "\n";

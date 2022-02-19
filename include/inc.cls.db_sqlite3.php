@@ -74,6 +74,25 @@ class db_sqlite3 extends db_sqlite {
 		return $r;
 	}
 
+	public function fetch_columns($f_szSqlQuery) {
+		$r = $this->query($f_szSqlQuery);
+		if ( !$r ) {
+			return false;
+		}
+
+		$cols = $r->columnCount();
+		$header = [];
+		for ($i = 0; $i < $cols; $i++) {
+			$meta = $r->getColumnMeta($i);
+			$header[] = $meta['name'];
+		}
+
+		$rows = $r->fetchAll(PDO::FETCH_NUM);
+		array_unshift($rows, $header);
+
+		return $rows;
+	}
+
 	public function fetch($f_szSqlQuery) {
 		$r = $this->query($f_szSqlQuery);
 		if ( !$r ) {
