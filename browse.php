@@ -144,7 +144,12 @@ rowser.call(sqlq);
 if ( $arrContents ) {
 	$szCountSql = $szSql;
 	$szCountSql = preg_replace('#(limit|offset)\s+\d+(?:\s*,\s*\d+)?#i', '', $szCountSql);
-	$total = $db->fetch_one('SELECT COUNT(1) FROM (' . trim($szCountSql) . ') x');
+	try {
+		$total = $db->fetch_one('SELECT COUNT(1) FROM (' . trim($szCountSql) . ') x');
+	}
+	catch (\Exception $ex) {
+		$total = 0;
+	}
 
 	$header = '';
 	$header .= (count($arrContents) - 1) . ' / ' . $total . ' records | ';

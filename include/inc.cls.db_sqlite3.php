@@ -88,8 +88,11 @@ class db_sqlite3 extends db_sqlite {
 		}
 
 		$rows = $r->fetchAll(PDO::FETCH_NUM);
-		array_unshift($rows, $header);
+		if ( !count($rows) ) {
+			return [];
+		}
 
+		array_unshift($rows, $header);
 		return $rows;
 	}
 
