@@ -63,9 +63,18 @@ class db_sqlite3 extends db_sqlite {
 		$this->num_queries++;
 		$this->last_query = $f_szSqlQuery;
 		$t = microtime(1);
-		if ( false === ($r = $this->dbCon->query($f_szSqlQuery)) ) {
+		try {
+			if ( false === ($r = $this->dbCon->query($f_szSqlQuery)) ) {
+				$this->last_query_time = microtime(1) - $t;
+				$this->saveError(true);
+				return false;
+			}
+		}
+		catch (PDOException $ex) {
 			$this->last_query_time = microtime(1) - $t;
-			$this->saveError(true);
+			$this->errno = $ex->getCode();
+			$this->error = $ex->getMessage();
+			$this->m_iAffectedRows = 0;
 			return false;
 		}
 		$this->last_query_time = microtime(1) - $t;

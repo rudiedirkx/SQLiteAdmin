@@ -28,6 +28,7 @@ if ( isset($_POST['insert']) ) {
 			if ( !$i ) {
 				$db->rollback();
 				echo '[Error: '.$db->error."]\n";
+				echo '<pre>' . $db->last_query . '</pre>';
 				echo '<h1>ROLLBACKED</h1>';
 				exit;
 			}
