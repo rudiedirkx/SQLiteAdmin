@@ -125,7 +125,7 @@ abstract class DB_Generic {
 	}
 
 	public function escapeAndQuoteStructure( $value ) {
-		return '"' . addslashes($value) . '"';
+		return '"' . addslashes(trim($value, ' \'"')) . '"';
 	}
 
 	public function escapeAndQuote($v) {
@@ -169,18 +169,15 @@ abstract class DB_Generic {
 	}
 
 	public function replace_into($tbl, $values) {
-		foreach ( $values AS $k => $v ) {
-			$values[$k] = $this->escapeAndQuote($v);
-		}
-		return $this->query('REPLACE INTO '.$tbl.' ('.implode(',', array_keys($values)).') VALUES ('.implode(",", $values).');');
+		$columns = array_map([$this, 'escapeAndQuoteStructure'], array_keys($values));
+		$values = array_map([$this, 'escapeAndQuote'], $values);
+		return $this->query('REPLACE INTO ' . $this->escapeAndQuoteStructure($tbl) . ' (' . implode(',', $columns) . ') VALUES (' . implode(', ', $values) . ')');
 	}
 
 	public function insert($tbl, $values) {
-		foreach ( $values AS $k => $v ) {
-			$values[$k] = $this->escapeAndQuote($v);
-		}
-		$szSqlQuery = 'INSERT INTO '.$tbl.' ('.implode(', ', array_keys($values)).') VALUES ('.implode(", ", $values).');';
-		return $this->query($szSqlQuery);
+		$columns = array_map([$this, 'escapeAndQuoteStructure'], array_keys($values));
+		$values = array_map([$this, 'escapeAndQuote'], $values);
+		return $this->query('INSERT INTO ' . $this->escapeAndQuoteStructure($tbl) . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $values) . ')');
 	}
 
 	public function update($tbl, $update, $where = null) {
