@@ -132,7 +132,12 @@ elseif ( !$sql && @$_GET['recreate'] ) {
 	$sql = implode("\n\n", $sqls);
 }
 
-echo '<form method="post" action="?db=' . $_GET['db'] . '&query=1"><fieldset><legend>Query</legend>'."\n";
+?>
+<form method="post" action="?db=<?= html($_GET['db']) ?>&query=1">
+	<fieldset>
+		<legend>Query</legend>
+		<?php
+
 if ( isset($_POST['sql']) ) {
 	$arrQueries = array_filter(explode(";\n\n", str_replace("\r", '', $_POST['sql'])), function($sql) { return trim($sql); });
 	if ( 1 < count($arrQueries) ) {
@@ -182,6 +187,22 @@ if ( isset($_POST['sql']) ) {
 		$db->commit();
 	}
 }
-echo '<div><b>END QUERIES WITH A <font size=6>;</font></b></div>';
-echo '<textarea name="sql" style="font-size:13px;width:100%;" rows="10">' . html($sql) . '</textarea><br /><input type="submit" value="Execute" />';
-echo '</fieldset></form>'."\n";
+
+		?>
+		<p><textarea name="sql" style="width: 100%" rows="10"><?= html($sql) ?></textarea></p>
+		<p><button>Execute</button></p>
+	</fieldset>
+</form>
+
+<script>
+(function() {
+	const el = document.querySelector('textarea[name="sql"]');
+	const handler = function(e) {
+		while (this.scrollHeight > this.offsetHeight) {
+			this.rows++;
+		}
+	};
+	handler.call(el);
+	el.addEventListener('input', handler);
+})();
+</script>
