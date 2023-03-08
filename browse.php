@@ -24,7 +24,7 @@ if ( $arrContents ) {
 	$refs = $db->references($_tbl);
 
 	$cropper = function($value) use ($nocrop) {
-		return $nocrop || mb_strlen($value) <= 80 ? $value : mb_substr($value, 0, 78) . '...';
+		return $nocrop || mb_strlen($value ?? '') <= 80 ? $value : mb_substr($value ?? '', 0, 78) . '...';
 	};
 
 	$encoder = function($value) use ($export) {

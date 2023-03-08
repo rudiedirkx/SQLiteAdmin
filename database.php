@@ -69,7 +69,7 @@ $recreatableTables = array_diff(array_keys($tables), ['_version']);
 
 <?php
 
-$sql = trim(@$_POST['sql']);
+$sql = trim($_POST['sql'] ?? '');
 
 // EXPORT ALL DATA
 if ( !$sql && @$_GET['exportdata'] ) {
